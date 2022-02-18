@@ -28,8 +28,9 @@ import {
 import {
   isWordInWordList,
   isWinningWord,
-  solution,
-  findFirstUnusedReveal,
+  solution_A,
+  solution_B,
+  //findFirstUnusedReveal,
 } from './lib/words'
 import { addStatsForCompletedGame, loadStats } from './lib/stats'
 import {
@@ -70,16 +71,24 @@ function App() {
   const [isRevealing, setIsRevealing] = useState(false)
   const [guesses, setGuesses] = useState<string[]>(() => {
     const loaded = loadGameStateFromLocalStorage()
-    if (loaded?.solution !== solution) {
+    if (loaded == null) {
       return []
     }
-    const gameWasWon = loaded.guesses.includes(solution)
+
+    if (
+      loaded?.solution_A !== solution_A ||
+      loaded?.solution_B !== solution_B
+    ) {
+      return []
+    }
+    const gameWasWon =
+      loaded.guesses.includes(solution_A) || loaded.guesses.includes(solution_B)
     if (gameWasWon) {
       setIsGameWon(true)
     }
     if (loaded.guesses.length === MAX_CHALLENGES && !gameWasWon) {
       setIsGameLost(true)
-      showErrorAlert(CORRECT_WORD_MESSAGE(solution), {
+      showErrorAlert(CORRECT_WORD_MESSAGE(solution_A, solution_B), {
         persist: true,
       })
     }
@@ -136,7 +145,7 @@ function App() {
   }
 
   useEffect(() => {
-    saveGameStateToLocalStorage({ guesses, solution })
+    saveGameStateToLocalStorage({ guesses, solution_A, solution_B })
   }, [guesses])
 
   useEffect(() => {
@@ -193,16 +202,16 @@ function App() {
     }
 
     // enforce hard mode - all guesses must contain all previously revealed letters
-    if (isHardMode) {
-      const firstMissingReveal = findFirstUnusedReveal(currentGuess, guesses)
-      if (firstMissingReveal) {
-        showErrorAlert(firstMissingReveal)
-        setCurrentRowClass('jiggle')
-        return setTimeout(() => {
-          setCurrentRowClass('')
-        }, ALERT_TIME_MS)
-      }
-    }
+    // if (isHardMode) {
+    //   const firstMissingReveal = findFirstUnusedReveal(currentGuess, guesses)
+    //   if (firstMissingReveal) {
+    //     showErrorAlert(firstMissingReveal)
+    //     setCurrentRowClass('jiggle')
+    //     return setTimeout(() => {
+    //       setCurrentRowClass('')
+    //     }, ALERT_TIME_MS)
+    //   }
+    // }
 
     setIsRevealing(true)
     // turn this back off after all
@@ -229,7 +238,7 @@ function App() {
       if (guesses.length === MAX_CHALLENGES - 1) {
         setStats(addStatsForCompletedGame(stats, guesses.length + 1))
         setIsGameLost(true)
-        showErrorAlert(CORRECT_WORD_MESSAGE(solution), {
+        showErrorAlert(CORRECT_WORD_MESSAGE(solution_A, solution_B), {
           persist: true,
           delayMs: REVEAL_TIME_MS * MAX_WORD_LENGTH + 1,
         })

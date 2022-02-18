@@ -6,8 +6,8 @@ export const NOT_ENOUGH_LETTERS_MESSAGE = 'Not enough letters'
 export const WORD_NOT_FOUND_MESSAGE = 'Word not found'
 export const HARD_MODE_ALERT_MESSAGE =
   'Hard Mode can only be enabled at the start!'
-export const CORRECT_WORD_MESSAGE = (solution: string) =>
-  `The word was ${solution}`
+export const CORRECT_WORD_MESSAGE = (solution_A: string, solution_B: string) =>
+  `The words were ${solution_A} and ${solution_B}`
 export const WRONG_SPOT_MESSAGE = (guess: string, position: number) =>
   `Must use ${guess} in position ${position}`
 export const NOT_CONTAINED_MESSAGE = (letter: string) =>
