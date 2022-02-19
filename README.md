@@ -1,6 +1,6 @@
 # Quantum Wordle (Qwordle)
 
-This is a quantum twist on the popular word guessing game we all know and love.
+This is an attempt to put a quantum twist on the popular word guessing game we all know and love.
 
 ## How to play
 
@@ -12,19 +12,16 @@ Each guess must be a valid five-letter word. Hit the enter button to submit.
 
 After each guess, the color of the tiles will change to show how close your guess was to the Qwordle.
 
-### Special Rules a.k.a **'Physicists, please don't kill me!'**:
+### **Special Rules** a.k.a **'Physicists, please don't kill me!'**:
 
-Color of the tiles follow special rules based on quantum-wordle-mechanics . 
+Color of the tiles follow special rules based on quantum-wordle-mechanics. 
 
-- **Classical case**: If your guess shares letters with exactly one of the two words in the pair (either one), you will see all solid colors (deterministic measurement).
-- **Interference case**: If your guess shares letters with both words in the entangled-pair, you will see all striped colors (probabalistic measurement).
-- Remember again that entangled-word pairs never share the same letters between them
-
-Hint: The word-pairs may also be related to each by category or meaning
+- **Classical case**: If your guess shares letters with exactly one of the two words in the entangled-pair (either one), you will see all solid colors. This is analogous to a deterministic measurement of the closest word in the pair. There is no indicator for which of the two words matched.
+- **Interference case**: If your guess shares letters with both words in the entangled-pair, all matching tiles change to partially colored. Just like before, these tiles don't show which letters belong to which word in the pair. However, the partially coloring of tiles indicate that not all of the letters from the guess belong to the same word. This is analogous to a repeated measurement of [https://en.wikipedia.org/wiki/No-cloning_theorem](almost identical) entangled-pairs producing mixed results.
+- **Remember**: The words of the entangled-word pairs never share the same letters between them
+- **Hint**: The words of the entangled-word pairs could be related to each other by category or meaning
 
 ## [**Demo: Quantum Wordle**](https://qwordle.bhat.ca/)
-
-Made using React, Typescript, and Tailwind.
 
 ## Thanks
 Original code based on https://github.com/cwackerfuss/react-wordle
@@ -36,7 +33,7 @@ Original code based on https://github.com/cwackerfuss/react-wordle
 
 ## Ideas & Feedback?
 
-This project is still a work-in-progress. Although the current version is playable by itself, I want to evolve the rules (& implementation) to capture all 3 aspects the superposition, entaglement & collapse behaviors normally observed in quantum mechanics. That might make this project a useful teaching aid.
+This project is still a work-in-progress. Although the current version is playable by itself, I want to evolve the rules (& implementation) to capture all 3 aspects - the superposition, entaglement & collapse behaviors normally observed in quantum mechanics. That might make this project a useful teaching aid.
 
 ## Build and run
 
