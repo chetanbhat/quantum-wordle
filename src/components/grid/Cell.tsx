@@ -31,13 +31,13 @@ export const Cell = ({
       'border-black dark:border-slate-100': value && !status,
       'absent shadowed bg-slate-400 dark:bg-slate-700 text-white border-slate-400 dark:border-slate-700':
         status === 'absent',
-      'correct shadowed q_correct dark:q_correct-dark text-white border-orange-500':
+      'correct shadowed q_cell q_correct-hc dark:q_correct-hc-dark text-white border-orange-500':
         (status === 'q_correct') && isHighContrast,
-      'present shadowed q_present text-white border-cyan-500':
+      'present shadowed q_cell q_present-hc dark:q_present-hc-dark text-white border-cyan-500':
         (status === 'q_present') && isHighContrast,
-      'correct shadowed q_correct dark:q_correct-dark text-white border-green-500':
+      'correct shadowed q_cell q_correct dark:q_correct-dark text-white border-green-500':
         (status === 'q_correct') && !isHighContrast,
-      'present shadowed q_present text-white border-yellow-500':
+      'present shadowed q_cell q_present dark:q_present-dark text-white border-yellow-500':
         (status === 'q_present') && !isHighContrast,
       'correct shadowed bg-orange-500 text-white border-orange-500':
         (status === 'correct') && isHighContrast,

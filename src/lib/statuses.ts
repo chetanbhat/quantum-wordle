@@ -18,12 +18,12 @@ export const getStatuses = (
 
       if (letter === solution_A[i] || letter === solution_B[i]) {
         //make status correct
-        return (charObj[letter] = 'q_correct')
+        return (charObj[letter] = 'correct')
       }
 
       if (charObj[letter] !== 'correct') {
         //make status present
-        return (charObj[letter] = 'q_present')
+        return (charObj[letter] = 'present')
       }
     })
   })

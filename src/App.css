@@ -1,46 +1,63 @@
 html.dark {
   background-color: rgb(15, 23, 42);
 }
-/* .q_present-hc{
-  background: linear-gradient(210deg, #334155  50%,#facc15 51%);
+.q_cell {
+  background-size: 54px 52px;
+  --bg-angle: 90deg;
 }
-.q_present-dark{
-  background: linear-gradient(210deg, #334155  50%,#facc15 51%);
-}
-.q_present{
-  background: linear-gradient(210deg, #334155  50%,#facc15 51%);
-}
-.q_correct-hc{
-  background: linear-gradient(210deg, #334155  50%,#4ade80 51%);
-}
-.q_correct-dark{
-  background: linear-gradient(210deg, #334155  50%,#4ade80 51%);
-}
-.q_correct{
-  background: linear-gradient(210deg, #334155  50%,#4ade80 51%);
-} */
-
 .q_present-hc {
-  background-image: linear-gradient(135deg, #334155 50%, #facc15 50%);
-  background-size: 54px 52px;
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--present-cell-bg-color) 50%
+  );
 }
-.q_present-dark {
-  background-image: linear-gradient(135deg, #334155 50%, #facc15 50%);
-  background-size: 54px 52px;
+.q_present-hc-dark {
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--present-cell-bg-color) 50%
+  );
 }
 .q_present {
-  background-image: linear-gradient(135deg, #334155 50%, #facc15 50%);
-  background-size: 54px 52px;
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--present-cell-bg-color) 50%
+  );
+}
+.q_present-dark {
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--present-cell-bg-color) 50%
+  );
 }
 .q_correct-hc {
-  background-image: linear-gradient(135deg, #334155 50%, #4ade80 50%);
-  background-size: 54px 52px;
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--correct-cell-bg-color) 50%
+  );
 }
-.q_correct-dark {
-  background-image: linear-gradient(135deg, #334155 50%, #4ade80 50%);
-  background-size: 54px 52px;
+.q_correct-hc-dark {
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--correct-cell-bg-color) 50%
+  );
 }
 .q_correct {
-  background-image: linear-gradient(135deg, #334155 50%, #4ade80 50%);
-  background-size: 54px 52px;
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--correct-cell-bg-color) 50%
+  );
+}
+.q_correct-dark {
+  background-image: linear-gradient(
+    var(--bg-angle),
+    var(--absent-cell-bg-color) 50%,
+    var(--correct-cell-bg-color) 50%
+  );
 }
