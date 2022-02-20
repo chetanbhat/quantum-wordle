@@ -17,9 +17,9 @@ After each guess, the color of the tiles will change to show how close your gues
 Color of the tiles follow special rules based on quantum-wordle-mechanics. 
 
 - **Classical case**: If your guess shares letters with exactly one of the two words in the entangled-pair (either one), you will see all solid colors. This is analogous to a deterministic measurement of the closest word in the pair. There is no indicator for which of the two words matched.
-- **Interference case**: If your guess shares letters with both words in the entangled-pair, all matching tiles change to partially colored. Just like before, these tiles don't show which letters belong to which word in the pair. However, the partially coloring of tiles indicate that not all of the letters from the guess belong to the same word. This is analogous to a repeated measurement of [https://en.wikipedia.org/wiki/No-cloning_theorem](almost identical) entangled-pairs producing mixed results.
+- **Interference case**: If your guess shares letters with both words in the entangled-pair, all matching tiles change to partially colored. Just like before, these tiles don't show which letters belong to which word in the pair. However, the partially coloring of tiles indicate that not all of the letters from the guess belong to the same word. This is analogous to a repeated measurement of [almost identical](https://en.wikipedia.org/wiki/No-cloning_theorem) entangled-pairs producing mixed results.
 - **Remember**: The words of the entangled-word pairs never share the same letters between them
-- **Hint**: The words of the entangled-word pairs could be related to each other by category or meaning
+- **TODO**: The words of the entangled-word pairs can be related to each other by category or meaning to make this more fun!
 
 ## [**Demo: Quantum Wordle**](https://qwordle.bhat.ca/)
 
