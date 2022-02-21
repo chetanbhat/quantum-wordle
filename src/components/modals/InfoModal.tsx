@@ -10,7 +10,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
   return (
     <BaseModal title="How to play Qwordle" isOpen={isOpen} handleClose={handleClose}>
       <p className="text-sm text-gray-500 dark:text-gray-300">
-        Welcome to the <b>Quantum version of Wordle</b>! Guess one of two words in the <b>entangled-pair</b> in six tries. The two words in an entagled word pair never have overlapping letters.
+        Welcome to the <b>Quantum version of Wordle</b>! Guess one of two words in the <b>entangled-pair</b> in six tries. The two words in an entangled word pair never have overlapping letters.
       </p>
       <h4 className="mt-2 text-lg text-gray-500 dark:text-gray-300">
         <b>Special Rules</b>

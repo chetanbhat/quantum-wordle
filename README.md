@@ -6,7 +6,7 @@ This is an attempt to put a quantum twist on the popular word guessing game we a
 
 Guess one of two words in the ENTANGLED WORDLE PAIR (the QWORDLE) in six tries.
 
-The words in an entagled word pair never have overlapping letters.
+The words in an entangled word pair never have overlapping letters.
 
 Each guess must be a valid five-letter word. Hit the enter button to submit.
 
