@@ -1,6 +1,10 @@
 export const GAME_TITLE = process.env.REACT_APP_GAME_NAME!
 
-export const WIN_MESSAGES = ['Great Job!', 'Awesome', 'Well done!']
+export const WIN_MESSAGES = (solution_A: string, solution_B: string) => [
+  `Great Job! The words were ${solution_A} and ${solution_B}`,
+  `Awesome! The words were ${solution_A} and ${solution_B}`,
+  `Well done! The words were ${solution_A} and ${solution_B}`
+]
 export const GAME_COPIED_MESSAGE = 'Game copied to clipboard'
 export const NOT_ENOUGH_LETTERS_MESSAGE = 'Not enough letters'
 export const WORD_NOT_FOUND_MESSAGE = 'Word not found'
