@@ -10,7 +10,7 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
   return (
     <BaseModal title="How to play Qwordle" isOpen={isOpen} handleClose={handleClose}>
       <p className="text-sm text-gray-500 dark:text-gray-300">
-        Welcome to the <b>Quantum version of Wordle</b>! Guess one of two words in the <b>entangled-pair</b> in six tries. The two words in an entangled word pair never have overlapping letters.
+        Welcome to the <b>Quantum version of Wordle</b>! Guess <b>any one of two</b> words in the <b>entangled-pair</b> in six tries. The two words in an entangled word pair never have overlapping letters.
       </p>
       <h4 className="mt-2 text-lg text-gray-500 dark:text-gray-300">
         <b>Special Rules</b>
@@ -43,23 +43,22 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
           status="absent" />
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-300">
-        The letters W and A are in the same word. W is in the correct spot, and A is the wrong spot.
+        Example: If the hidden words were <b>MUSIC</b> and <b>WALTZ</b>, the guess (WEARY) is closest to <b>WALTZ</b>. Letter <b>W</b> is in the correct spot, and <b>A</b> is the wrong spot. Since the matched letters belong to the <b>same word</b> (WALTZ), you will see <b>completely filled tiles</b> for the whole guess.
       </p>
       <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
-        <b>Quantum case:</b> If your guess matches letters across both words in the entangled-pair, you will see half-filled colored tiles for the whole guess. Similar to the previous case, these tiles don't indicate which letters belong to which word in the pair. This is analogous to repeated measurements of <i>multiple almost identical</i> entangled-pairs producing mixed results (duality).
+        <b>Quantum case:</b> If your guess matches letters across both words in the entangled-pair, you will see half-filled colored tiles for the whole guess. Similar to the previous case, these tiles don't indicate which letters belong to which word in the pair. This is analogous to repeated measurements of multiple almost identical entangled-pairs producing mixed results (duality).
       </p>
 
       <div className="flex justify-center mb-1 mt-2">
         <Cell
           isRevealing={true}
           isCompleted={true}
-          status="q_correct" value="B" />
+          status="q_present" value="T" />
         <Cell
-          isRevealing={true}
           isCompleted={true}
-          status="q_present" value="O" />
+          status="q_correct" value="A" />
         <Cell
-          value="N"
+          value="X"
           isCompleted={true}
           status="absent"
         />
@@ -69,12 +68,12 @@ export const InfoModal = ({ isOpen, handleClose }: Props) => {
         <Cell
           isRevealing={true}
           isCompleted={true}
-          status="q_correct" value="S" />
+          status="q_present" value="S" />
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-300">
-        Letters B, O, and S are spread across different words in the entangled-pair.</p>
+        Example: If the hidden words were <b>MUSIC</b> and <b>WALTZ</b>, the guess (<b>TAXES</b>) has letters from both words. Letter <b>A</b> is in the correct spot, and <b>T</b> and <b>S</b> are in the wrong spots. Since the matched letters belong to <b>different words</b>, you will see <b>half-filled tiles</b> for the whole guess (indicating interference and ambiguity).</p>
       <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
-        <b>Remember:</b> The two words in the entangled-word pairs never share the same letters between them (contain disjoint sets of letters).
+        <b>Remember:</b> The two words in the entangled-word pairs <b>never share the same letters</b> between them (contain disjoint sets of letters). You only need to guess <b>any one of the two</b> words in the pair to win.
       </p>
 
       <p className="mt-3 italic text-sm text-gray-500 dark:text-gray-300">
