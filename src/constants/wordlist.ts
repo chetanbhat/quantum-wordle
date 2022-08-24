@@ -246,6 +246,13 @@ export const WORDS_1 = [
   'husky',
   'wiped',
   'slump',
+  'first',
+  'filed',
+  'fired',
+  'drove',
+  'awful',
+  'spite',
+  'nicer',
 ]
 
 export const WORDS_2 = [
@@ -496,4 +503,11 @@ export const WORDS_2 = [
   'corgi',
   'burnt',
   'hover',
+  'newly',
+  'sworn',
+  'blown',
+  'snuck',
+  'dirty',
+  'favor',
+  'plush',
 ]
