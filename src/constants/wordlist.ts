@@ -276,6 +276,7 @@ export const WORDS_1 = [
   'snark',
   'wield',
   'clung', // Oct 1st
+  'hound', // Oct 2nd
 ]
 
 export const WORDS_2 = [
@@ -556,4 +557,5 @@ export const WORDS_2 = [
   'itchy',
   'crush',
   'waive', // Oct 1st
+  'zebra', // Oct 2nd
 ]
