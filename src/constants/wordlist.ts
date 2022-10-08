@@ -282,6 +282,7 @@ export const WORDS_1 = [
   'grown', // Oct 5th
   'crypt', // Oct 6th
   'hairy', // Oct 7th
+  'unity', // Oct 8th
 ]
 
 export const WORDS_2 = [
@@ -568,4 +569,5 @@ export const WORDS_2 = [
   'lived', // Oct 5th
   'lodge', // Oct 6th
   'nosed', // Oct 7th
+  'whole', // Oct 8th
 ]
