@@ -289,6 +289,8 @@ export const WORDS_1 = [
   'float', // Oct 12th
   'boxer', // Oct 13th
   'covey', // Oct 14th
+  'sixty', // Oct 15th
+  'shade', // Oct 16th
 ]
 
 export const WORDS_2 = [
@@ -582,4 +584,6 @@ export const WORDS_2 = [
   'weigh', // Oct 12th
   'squad', // Oct 13th
   'quail', // Oct 14th
+  'dozen', // Oct 15th
+  'motif', // Oct 16th
 ]
