@@ -291,6 +291,9 @@ export const WORDS_1 = [
   'covey', // Oct 14th
   'sixty', // Oct 15th
   'shade', // Oct 16th
+  'stack', // Oct 17th
+  'paint', // Oct 18th
+  'amber', // Oct 19th
 ]
 
 export const WORDS_2 = [
@@ -586,4 +589,7 @@ export const WORDS_2 = [
   'quail', // Oct 14th
   'dozen', // Oct 15th
   'motif', // Oct 16th
+  'fixed', // Oct 17th
+  'smoke', // Oct 18th
+  'cloth', // Oct 19th
 ]
