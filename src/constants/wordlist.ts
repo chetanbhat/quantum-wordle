@@ -297,6 +297,9 @@ export const WORDS_1 = [
   'trope', // Oct 20th
   'swirl', // Oct 21th
   'voice', // Oct 22nd
+  'melon', // Oct 23rd
+  'sonar', // Oct 24th
+  'prick', // Oct 25th
 ]
 
 export const WORDS_2 = [
@@ -598,4 +601,7 @@ export const WORDS_2 = [
   'slang', // Oct 20th
   'donut', // Oct 21th
   'drums', // Oct 22nd
+  'spiky', // Oct 23rd
+  'glide', // Oct 24th
+  'shout', // Oct 25th
 ]
