@@ -245,36 +245,36 @@ export const WORDS_1 = [
   'venom',
   'husky',
   'wiped',
-  'slump',
-  'first',
-  'filed',
-  'fired',
+  'slump', // Sep 1st
+  'first', // Sep 2nd
+  'filed', // Sep 3rd
+  'fired', // Sep 4th
   'drove', // Sep 5th
-  'awful',
-  'spite',
-  'nicer',
-  'spear',
-  'flock',
-  'owing',
-  'waltz',
-  'snail',
-  'axiom',
-  'smack',
-  'drown',
-  'infer',
-  'lingo',
-  'braid',
-  'vixen',
-  'shred',
-  'wiser',
-  'flung',
-  'guise',
-  'rabid',
-  'nosed',
-  'islet',
-  'brash',
-  'snark',
-  'wield',
+  'awful', // Sep 6th
+  'spite', // Sep 7th
+  'nicer', // Sep 8th
+  'spear', // Sep 9th
+  'flock', // Sep 10th
+  'owing', // Sep 11th
+  'waltz', // Sep 12th
+  'snail', // Sep 13th
+  'axiom', // Sep 14th
+  'smack', // Sep 15th
+  'drown', // Sep 16th
+  'infer', // Sep 17th
+  'lingo', // Sep 18th
+  'braid', // Sep 19th
+  'vixen', // Sep 20th
+  'shred', // Sep 21st
+  'wiser', // Sep 22nd
+  'flung', // Sep 23rd
+  'guise', // Sep 24th
+  'rabid', // Sep 25th
+  'nosed', // Sep 26th
+  'islet', // Sep 27th
+  'brash', // Sep 28th
+  'snark', // Sep 29th
+  'wield', // Sep 30th
   'clung', // Oct 1st
   'hound', // Oct 2nd
   'drive', // Oct 3rd
@@ -300,6 +300,14 @@ export const WORDS_1 = [
   'melon', // Oct 23rd
   'sonar', // Oct 24th
   'prick', // Oct 25th
+  'taken', // Oct 26th
+  'dance', // Oct 27th
+  'sixty', // Oct 28th
+  'punch', // Oct 29th
+  'ratio', // Oct 30th
+  'crash', // Oct 31st
+  'steam', // Nov 1st
+  'wheat', // Nov 2nd
 ]
 
 export const WORDS_2 = [
@@ -549,36 +557,36 @@ export const WORDS_2 = [
   'scaly',
   'corgi',
   'burnt',
-  'hover',
-  'newly',
-  'sworn',
-  'blown',
-  'snuck', // Sept 5th 
-  'dirty',
-  'favor',
-  'plush',
-  'tunic',
-  'haunt',
-  'cater',
-  'remix',
-  'gumbo',
-  'curve',
-  'whirl',
-  'blaze',
-  'boast',
-  'expat',
-  'coset',
-  'stork',
-  'bloat',
-  'godly',
-  'crept',
-  'apron',
-  'stung',
-  'curly',
-  'fjord',
-  'pokey',
-  'itchy',
-  'crush',
+  'hover', // Sep 1st 
+  'newly', // Sep 2nd 
+  'sworn', // Sep 3rd 
+  'blown', // Sep 4th 
+  'snuck', // Sep 5th 
+  'dirty', // Sep 6th
+  'favor', // Sep 7th
+  'plush', // Sep 8th
+  'tunic', // Sep 9th
+  'haunt', // Sep 10th
+  'cater', // Sep 11th
+  'remix', // Sep 12th
+  'gumbo', // Sep 13th
+  'curve', // Sep 14th
+  'whirl', // Sep 15th
+  'blaze', // Sep 16th
+  'boast', // Sep 17th
+  'expat', // Sep 18th
+  'coset', // Sep 19th
+  'stork', // Sep 20th
+  'bloat', // Sep 21st
+  'godly', // Sep 22nd
+  'crept', // Sep 23rd
+  'apron', // Sep 24th
+  'stung', // Sep 25th
+  'curly', // Sep 26th
+  'fjord', // Sep 27th
+  'pokey', // Sep 28th
+  'itchy', // Sep 29th
+  'crush', // Sep 30th
   'waive', // Oct 1st
   'zebra', // Oct 2nd
   'shaft', // Oct 3rd
@@ -604,4 +612,12 @@ export const WORDS_2 = [
   'spiky', // Oct 23rd
   'glide', // Oct 24th
   'shout', // Oct 25th
+  'porch', // Oct 26th
+  'sport', // Oct 27th
+  'older', // Oct 28th
+  'alert', // Oct 29th
+  'pulse', // Oct 30th
+  'pilot', // Oct 31st
+  'pylon', // Nov 1st
+  'opium', // Nov 2nd
 ]
