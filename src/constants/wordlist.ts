@@ -308,6 +308,11 @@ export const WORDS_1 = [
   'crash', // Oct 31st
   'steam', // Nov 1st
   'wheat', // Nov 2nd
+  'lower', // Nov 3rd
+  'guard', // Nov 4th
+  'strip', // Nov 5th
+  'tuple', // Nov 6th
+  'poked', // Nov 7th
 ]
 
 export const WORDS_2 = [
@@ -620,4 +625,9 @@ export const WORDS_2 = [
   'pilot', // Oct 31st
   'pylon', // Nov 1st
   'opium', // Nov 2nd
+  'pitch', // Nov 3rd
+  'bench', // Nov 4th
+  'globe', // Nov 5th
+  'sigma', // Nov 6th
+  'laugh', // Nov 7th
 ]
