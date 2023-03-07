@@ -9,8 +9,13 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Harden Runner
+        uses: step-security/harden-runner@c8454efe5d0bdefd25384362fe217428ca277d57 # v2.2.0
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
+      - uses: actions/checkout@dc323e67f16fb5f7663d20ff7941f27f5809e9b6 # v2.6.0
       - name: Prettify code
-        uses: creyD/prettier_action@v4.2
+        uses: creyD/prettier_action@6602189cf8bac1ce73ffe601925f6127ab7f21ac # v4.2
         with:
           prettier_options: --check src
