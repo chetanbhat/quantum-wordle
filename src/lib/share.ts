@@ -9,11 +9,19 @@ export const shareStatus = (
   lost: boolean,
   isHardMode: boolean
 ) => {
-  navigator.clipboard.writeText(
-    `${GAME_TITLE} ${solutionIndex} ${lost ? 'X' : guesses.length
+  const textToShare = `${GAME_TITLE} ${solutionIndex} ${lost ? 'X' : guesses.length
     }/${MAX_CHALLENGES}${isHardMode ? '*' : ''}\n\n` +
-    generateEmojiGrid(guesses)
-  )
+    generateEmojiGrid(guesses);
+
+
+  if (navigator.canShare && navigator.share) {
+    const shareData = { text: textToShare };
+    if (navigator.canShare(shareData))
+        navigator.share(shareData);
+  } 
+  else {
+    navigator.clipboard.writeText(textToShare);
+  }
 }
 
 export const generateEmojiGrid = (guesses: string[]) => {
