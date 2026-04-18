@@ -4,12 +4,19 @@ import './index.css'
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { AlertProvider } from './context/AlertContext'
+import { TransferPage } from './components/transfer/TransferPage'
+
+const isTransferPage = window.location.pathname === '/transfer'
 
 ReactDOM.render(
   <React.StrictMode>
-    <AlertProvider>
-      <App />
-    </AlertProvider>
+    {isTransferPage ? (
+      <TransferPage />
+    ) : (
+      <AlertProvider>
+        <App />
+      </AlertProvider>
+    )}
   </React.StrictMode>,
   document.getElementById('root')
 )
