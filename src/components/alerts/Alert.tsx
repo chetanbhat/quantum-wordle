@@ -20,7 +20,7 @@ export const Alert = ({
     {
       'bg-rose-500 text-white': variant === 'error',
       'bg-blue-500 text-white': variant === 'success',
-    }
+    },
   )
 
   return (

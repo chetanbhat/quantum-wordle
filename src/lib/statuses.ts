@@ -1,12 +1,19 @@
-// import { WORDS_1, WORDS_2 } from './words'
+import { solution_A, solution_B } from './words'
+import { WordPair } from './puzzles'
+const classicPair = { solution_A, solution_B }
 
-import { solution_A, solution_B } from "./words"
-
-export type CharStatus = 'absent' | 'present' | 'correct' | 'q_present' | 'q_correct'
+export type CharStatus =
+  | 'absent'
+  | 'present'
+  | 'correct'
+  | 'q_present'
+  | 'q_correct'
 
 export const getStatuses = (
-  guesses: string[]
+  guesses: string[],
+  pair: WordPair = classicPair,
 ): { [key: string]: CharStatus } => {
+  const { solution_A, solution_B } = pair
   const charObj: { [key: string]: CharStatus } = {}
 
   guesses.forEach((word) => {
@@ -31,7 +38,11 @@ export const getStatuses = (
   return charObj
 }
 
-export const getGuessStatuses = (guess: string): CharStatus[] => {
+export const getGuessStatuses = (
+  guess: string,
+  pair: WordPair = classicPair,
+): CharStatus[] => {
+  const { solution_A, solution_B } = pair
   const splitSolution_A = solution_A.split('')
   const splitSolution_B = solution_B.split('')
   const splitGuess = guess.split('')
@@ -42,8 +53,8 @@ export const getGuessStatuses = (guess: string): CharStatus[] => {
   // Interference occurs when letters from the guess
   // are spread across the two solution
   const interference =
-    splitGuess.some(g => splitSolution_A.includes(g)) &&
-    splitGuess.some(g => splitSolution_B.includes(g))
+    splitGuess.some((g) => splitSolution_A.includes(g)) &&
+    splitGuess.some((g) => splitSolution_B.includes(g))
 
   const statuses: CharStatus[] = Array.from(Array(guess.length))
 
@@ -64,7 +75,10 @@ export const getGuessStatuses = (guess: string): CharStatus[] => {
   splitGuess.forEach((letter, i) => {
     if (statuses[i]) return
 
-    if (!splitSolution_A.includes(letter) && !splitSolution_B.includes(letter)) {
+    if (
+      !splitSolution_A.includes(letter) &&
+      !splitSolution_B.includes(letter)
+    ) {
       // handles the absent case
       statuses[i] = 'absent'
       return
@@ -72,11 +86,11 @@ export const getGuessStatuses = (guess: string): CharStatus[] => {
 
     // now we are left with "present"s
     const indexOfPresentChar_A = splitSolution_A.findIndex(
-      (x, index) => x === letter && !solutionCharsTaken_A[index]
+      (x, index) => x === letter && !solutionCharsTaken_A[index],
     )
     // now we are left with "present"s
     const indexOfPresentChar_B = splitSolution_B.findIndex(
-      (x, index) => x === letter && !solutionCharsTaken_B[index]
+      (x, index) => x === letter && !solutionCharsTaken_B[index],
     )
 
     if (indexOfPresentChar_A > -1) {

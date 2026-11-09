@@ -3,7 +3,7 @@ import { StatBar } from '../stats/StatBar'
 import { Histogram } from '../stats/Histogram'
 import { GameStats } from '../../lib/localStorage'
 import { shareStatus } from '../../lib/share'
-import { tomorrow } from '../../lib/words'
+import { Puzzle } from '../../lib/puzzles'
 import { BaseModal } from './BaseModal'
 import {
   STATISTICS_TITLE,
@@ -13,6 +13,7 @@ import {
 } from '../../constants/strings'
 
 type Props = {
+  puzzle: Puzzle
   isOpen: boolean
   handleClose: () => void
   guesses: string[]
@@ -24,6 +25,7 @@ type Props = {
 }
 
 export const StatsModal = ({
+  puzzle,
   isOpen,
   handleClose,
   guesses,
@@ -61,16 +63,20 @@ export const StatsModal = ({
             <h5>{NEW_WORD_TEXT}</h5>
             <Countdown
               className="text-lg font-medium text-gray-900 dark:text-gray-100"
-              date={tomorrow}
+              date={puzzle.tomorrow}
               daysInHours={true}
             />
           </div>
           <button
             type="button"
             className="mt-2 w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
-            onClick={() => {
-              shareStatus(guesses, isGameLost, isHardMode)
-              handleShare()
+            onClick={async () => {
+              try {
+                await shareStatus(guesses, isGameLost, isHardMode, puzzle)
+                handleShare()
+              } catch {
+                /* Cancellation or unavailable clipboard leaves the game untouched. */
+              }
             }}
           >
             {SHARE_TEXT}

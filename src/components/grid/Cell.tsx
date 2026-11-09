@@ -32,24 +32,24 @@ export const Cell = ({
       'absent shadowed bg-slate-400 dark:bg-slate-700 text-white border-slate-400 dark:border-slate-700':
         status === 'absent',
       'correct shadowed q_cell q_correct-hc dark:q_correct-hc-dark text-white border-orange-500':
-        (status === 'q_correct') && isHighContrast,
+        status === 'q_correct' && isHighContrast,
       'present shadowed q_cell q_present-hc dark:q_present-hc-dark text-white border-cyan-500':
-        (status === 'q_present') && isHighContrast,
+        status === 'q_present' && isHighContrast,
       'correct shadowed q_cell q_correct dark:q_correct-dark text-white border-green-500':
-        (status === 'q_correct') && !isHighContrast,
+        status === 'q_correct' && !isHighContrast,
       'present shadowed q_cell q_present dark:q_present-dark text-white border-yellow-500':
-        (status === 'q_present') && !isHighContrast,
+        status === 'q_present' && !isHighContrast,
       'correct shadowed bg-orange-500 text-white border-orange-500':
-        (status === 'correct') && isHighContrast,
+        status === 'correct' && isHighContrast,
       'present shadowed bg-cyan-500 text-white border-cyan-500':
-        (status === 'present') && isHighContrast,
+        status === 'present' && isHighContrast,
       'correct shadowed bg-green-500 text-white border-green-500':
-        (status === 'correct') && !isHighContrast,
+        status === 'correct' && !isHighContrast,
       'present shadowed bg-yellow-500 text-white border-yellow-500':
-        (status === 'present') && !isHighContrast,
+        status === 'present' && !isHighContrast,
       'cell-fill-animation': isFilled,
       'cell-reveal': shouldReveal,
-    }
+    },
   )
 
   return (

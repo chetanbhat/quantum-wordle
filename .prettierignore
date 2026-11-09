@@ -1,0 +1,6 @@
+src/constants/wordlist.ts
+src/constants/validGuesses.ts
+tests/fixtures
+package-lock.json
+build
+CODE_OF_CONDUCT.md

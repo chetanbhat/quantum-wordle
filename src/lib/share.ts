@@ -1,66 +1,53 @@
 import { getGuessStatuses } from './statuses'
-import { solutionIndex } from './words'
 import { GAME_TITLE } from '../constants/strings'
-import { getStoredIsHighContrastMode } from './localStorage'
-import { MAX_CHALLENGES } from '../constants/settings'
+import { getPreference, getStoredIsHighContrastMode } from './localStorage'
+import { Puzzle, WordPair, getDailyPuzzle } from './puzzles'
 
-export const shareStatus = (
-  guesses: string[],
-  lost: boolean,
-  isHardMode: boolean
-) => {
-  const textToShare = `${GAME_TITLE} ${solutionIndex} ${lost ? 'X' : guesses.length
-    }/${MAX_CHALLENGES}${isHardMode ? '*' : ''}\n\n` +
-    generateEmojiGrid(guesses);
-
-
-  if (navigator.canShare && navigator.share) {
-    const shareData = { text: textToShare };
-    if (navigator.canShare(shareData))
-        navigator.share(shareData);
-  } 
-  else {
-    navigator.clipboard.writeText(textToShare);
-  }
-}
-
-export const generateEmojiGrid = (guesses: string[]) => {
-  return guesses
+export const generateEmojiGrid = (guesses: string[], pair?: WordPair) =>
+  guesses
     .map((guess) => {
-      const status = getGuessStatuses(guess)
-      const isHighContrast = getStoredIsHighContrastMode()
-      return guess
-        .split('')
-        .map((_, i) => {
-          switch (status[i]) {
+      const highContrast = getStoredIsHighContrastMode()
+      return getGuessStatuses(guess, pair)
+        .map((status) => {
+          switch (status) {
             case 'correct':
-              if (isHighContrast) {
-                return '🟧'
-              }
-              return '🟩'
+              return highContrast ? '🟧' : '🟩'
             case 'q_correct':
-              if (isHighContrast) {
-                return '🟠'
-              }
-              return '🟢'
+              return highContrast ? '🟠' : '🟢'
             case 'present':
-              if (isHighContrast) {
-                return '🟦'
-              }
-              return '🟨'
+              return highContrast ? '🟦' : '🟨'
             case 'q_present':
-              if (isHighContrast) {
-                return '🔵'
-              }
-              return '🟡'
+              return highContrast ? '🔵' : '🟡'
             default:
-              if (localStorage.getItem('theme') === 'dark') {
-                return '⬛'
-              }
-              return '⬜'
+              return getPreference('theme') === 'dark' ? '⬛' : '⬜'
           }
         })
         .join('')
     })
     .join('\n')
+
+export function shareText(
+  guesses: string[],
+  lost: boolean,
+  isHardMode: boolean,
+  puzzle: Puzzle,
+): string {
+  const label =
+    puzzle.mode === 'classic'
+      ? `${puzzle.number}`
+      : puzzle.mode === 'fresh'
+        ? `Fresh ${puzzle.number}`
+        : 'Practice'
+  return `${GAME_TITLE} ${label} ${lost ? 'X' : guesses.length}/6${isHardMode ? '*' : ''}\n\n${generateEmojiGrid(guesses, puzzle)}`
+}
+export async function shareStatus(
+  guesses: string[],
+  lost: boolean,
+  isHardMode: boolean,
+  puzzle = getDailyPuzzle('classic'),
+) {
+  const text = shareText(guesses, lost, isHardMode, puzzle)
+  if (navigator.canShare?.({ text }) && navigator.share)
+    await navigator.share({ text })
+  else await navigator.clipboard.writeText(text)
 }
