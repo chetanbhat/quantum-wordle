@@ -37,6 +37,11 @@ import {
 } from './lib/progress'
 import { emptyStats } from './lib/stats'
 import { isWordInWordList } from './lib/words'
+import {
+  ALERT_TIME_MS,
+  MAX_WORD_LENGTH,
+  REVEAL_TIME_MS,
+} from './constants/settings'
 import './App.css'
 
 const button =
@@ -98,6 +103,8 @@ function Game({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
+  const [isRevealing, setIsRevealing] = useState(false)
+  const [currentRowClass, setCurrentRowClass] = useState('')
   const [expired, setExpired] = useState(false)
   const [stale, setStale] = useState(false)
   const [dark, setDark] = useState(() =>
@@ -162,10 +169,14 @@ function Game({
       return
     if (!skip && currentGuess.length !== 5) {
       showError('Not enough letters')
+      setCurrentRowClass('jiggle')
+      setTimeout(() => setCurrentRowClass(''), ALERT_TIME_MS)
       return
     }
     if (!skip && !isWordInWordList(currentGuess)) {
       showError('Word not found')
+      setCurrentRowClass('jiggle')
+      setTimeout(() => setCurrentRowClass(''), ALERT_TIME_MS)
       return
     }
     busyRef.current = true
@@ -186,6 +197,13 @@ function Game({
       setSnapshot(next)
       setCurrentGuess('')
       setError('')
+      if (action.type !== 'skip-bonus') {
+        setIsRevealing(true)
+        setTimeout(
+          () => setIsRevealing(false),
+          REVEAL_TIME_MS * MAX_WORD_LENGTH,
+        )
+      }
     } catch (failure) {
       setError(errorText(failure))
     } finally {
@@ -285,7 +303,8 @@ function Game({
             pair={puzzle}
             guesses={progress.guesses}
             currentGuess={finished ? '' : currentGuess}
-            currentRowClassName=""
+            isRevealing={isRevealing}
+            currentRowClassName={currentRowClass}
           />
           {finished && (
             <div className="text-center max-w-md mx-auto mb-4" role="status">
@@ -341,6 +360,7 @@ function Game({
               bonusPending ? { solution_A: remaining, solution_B: '' } : puzzle
             }
             guesses={bonusPending ? [] : progress.guesses}
+            isRevealing={isRevealing}
             disabled={disabled}
             onChar={(value) => {
               if (!disabled && /^[A-Z]$/.test(value))
