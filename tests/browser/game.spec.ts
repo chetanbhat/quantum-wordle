@@ -206,6 +206,7 @@ test('rollover blocks an old puzzle and retains statistics for the next one', as
   await enter(page, pair.solution_A)
   expect(await saved(page)).toEqual(before)
   await page.getByRole('button', { name: 'Reload game' }).click()
+  await page.waitForLoadState()
   expect(await saved(page)).toEqual(before)
   await enter(page, 'CRANE')
   await expect
