@@ -40,6 +40,17 @@ const saved = (page: Page, mode = 'daily') =>
     (mode) => JSON.parse(localStorage.getItem(`qwordle:v2:${mode}`) || 'null'),
     mode,
   )
+async function enableBonus(page: Page) {
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.getByRole('switch', { name: 'Bonus Turn' }).click()
+  await page.getByRole('button', { name: 'Close dialog' }).click()
+}
+async function setPractice(page: Page, on: boolean) {
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  const toggle = page.getByRole('switch', { name: 'Practice Mode' })
+  if ((await toggle.getAttribute('aria-checked')) !== String(on))
+    await toggle.click()
+}
 const original = (page: Page) =>
   page.evaluate(() => [
     localStorage.getItem('gameState'),
@@ -53,7 +64,7 @@ test('legacy streak survives win, bonus, refresh and practice', async ({
   page.on('pageerror', (error) => errors.push(error.message))
   await seed(page, ['CRANE'])
   const before = await original(page)
-  await page.getByRole('checkbox').check()
+  await enableBonus(page)
   await enter(page, pair.solution_A)
   await expect(
     page.getByRole('region', { name: 'Bonus turn', exact: true }),
@@ -68,7 +79,7 @@ test('legacy streak survives win, bonus, refresh and practice', async ({
   await expect(page.getByText('Both words found!')).toBeVisible()
   expect((await saved(page)).stats.totalGames).toBe(24)
   const daily = await saved(page)
-  await page.getByRole('button', { name: 'Practice', exact: true }).click()
+  await setPractice(page, true)
   await enter(page, 'CRANE')
   await expect
     .poll(async () => (await saved(page, 'practice'))?.guesses)
@@ -77,7 +88,7 @@ test('legacy streak survives win, bonus, refresh and practice', async ({
   await expect
     .poll(async () => (await saved(page, 'practice'))?.guesses)
     .toEqual([])
-  await page.getByRole('button', { name: 'Daily puzzle', exact: true }).click()
+  await setPractice(page, false)
   await expect(page.getByText('Solved in 2/6!')).toBeVisible()
   expect(await original(page)).toEqual(before)
   expect(await saved(page)).toEqual(daily)
@@ -98,7 +109,7 @@ test('sixth-turn win gets exactly one bonus, with safe duplicate Enter handling'
   page,
 }) => {
   await seed(page, ['CRANE', 'CRANE', 'CRANE', 'CRANE', 'CRANE'])
-  await page.getByRole('checkbox').check()
+  await enableBonus(page)
   await enter(page, pair.solution_A)
   await page.keyboard.press('Enter')
   await expect(
@@ -120,7 +131,7 @@ test('a normal loss updates the streak once and offers no bonus', async ({
   page,
 }) => {
   await seed(page, ['CRANE', 'CRANE', 'CRANE', 'CRANE', 'CRANE'])
-  await page.getByRole('checkbox').check()
+  await enableBonus(page)
   await enter(page, 'CRANE')
   await expect(
     page.getByText('This puzzle is complete.', { exact: true }),
@@ -143,7 +154,7 @@ test('malformed statistics stay untouched and practice remains available', async
   await expect(page.getByRole('alert')).toContainText(
     'existing data has been kept',
   )
-  await page.getByRole('button', { name: 'Practice', exact: true }).click()
+  await setPractice(page, true)
   await enter(page, 'CRANE')
   await expect
     .poll(async () => (await saved(page, 'practice'))?.guesses)
@@ -243,7 +254,10 @@ test('transfer link previews, imports into an empty browser, and refuses overwri
 }) => {
   await seed(page, ['CRANE'])
   await enter(page, pair.solution_A)
-  await page.getByRole('link', { name: 'Transfer / backup' }).click()
+  await expect
+    .poll(async () => (await saved(page))?.stats.currentStreak)
+    .toBe(8)
+  await page.goto('/transfer')
   await page.getByRole('button', { name: 'Create transfer link' }).click()
   const link = await page
     .getByRole('textbox', { name: 'Transfer link' })
@@ -268,18 +282,18 @@ test('transfer link previews, imports into an empty browser, and refuses overwri
   await receiver.close()
 })
 
-test('physical typing works immediately after mode and bonus controls', async ({
+test('physical typing works immediately after settings controls', async ({
   page,
 }) => {
   await seed(page)
-  await page.getByRole('button', { name: 'Practice', exact: true }).click()
+  await setPractice(page, true)
   await page.keyboard.type('CRANE')
   await page.keyboard.press('Enter')
   await expect
     .poll(async () => (await saved(page, 'practice'))?.guesses)
     .toEqual(['CRANE'])
-  await page.getByRole('button', { name: 'Daily puzzle', exact: true }).click()
-  await page.getByRole('checkbox').check()
+  await setPractice(page, false)
+  await enableBonus(page)
   await page.keyboard.type(pair.solution_A)
   await page.keyboard.press('Enter')
   await expect(

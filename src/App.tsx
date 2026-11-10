@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  InformationCircleIcon,
+  ChartBarIcon,
+  CogIcon,
+} from '@heroicons/react/outline'
 import { Grid } from './components/grid/Grid'
 import { CurrentRow } from './components/grid/CurrentRow'
 import { CompletedRow } from './components/grid/CompletedRow'
@@ -32,13 +37,8 @@ import {
 } from './lib/progress'
 import { emptyStats } from './lib/stats'
 import { isWordInWordList } from './lib/words'
-import { shareStatus } from './lib/share'
 import './App.css'
 
-const labels: Record<GameMode, string> = {
-  daily: 'Daily puzzle',
-  practice: 'Practice',
-}
 const button =
   'rounded border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm disabled:opacity-50'
 const errorText = (error: unknown) =>
@@ -79,7 +79,13 @@ function initialGame(mode: GameMode): {
   }
 }
 
-function Game({ mode }: { mode: GameMode }) {
+function Game({
+  mode,
+  onModeChange,
+}: {
+  mode: GameMode
+  onModeChange: (mode: GameMode) => void
+}) {
   const [initial] = useState(() => initialGame(mode))
   const [snapshot, setSnapshot] = useState(initial.snapshot)
   const [error, setError] = useState(initial.error)
@@ -219,24 +225,37 @@ function Game({ mode }: { mode: GameMode }) {
 
   return (
     <>
-      <div className="flex justify-center gap-2 mb-4">
-        <button className={button} onClick={() => setInfoOpen(true)}>
-          How to play
+      <div className="flex w-80 mx-auto items-center mb-8 mt-20">
+        <h1 className="text-xl ml-2.5 grow font-bold dark:text-white">
+          {GAME_TITLE}
+        </h1>
+        <button
+          type="button"
+          aria-label="How to play"
+          className="cursor-pointer"
+          onClick={() => setInfoOpen(true)}
+        >
+          <InformationCircleIcon className="h-6 w-6 mr-2 dark:stroke-white" />
         </button>
         {mode !== 'practice' && (
-          <button className={button} onClick={() => setStatsOpen(true)}>
-            Statistics
+          <button
+            type="button"
+            aria-label="Statistics"
+            className="cursor-pointer"
+            onClick={() => setStatsOpen(true)}
+          >
+            <ChartBarIcon className="h-6 w-6 mr-3 dark:stroke-white" />
           </button>
         )}
-        <button className={button} onClick={() => setSettingsOpen(true)}>
-          Settings
+        <button
+          type="button"
+          aria-label="Settings"
+          className="cursor-pointer"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <CogIcon className="h-6 w-6 mr-3 dark:stroke-white" />
         </button>
       </div>
-      <p className="text-center text-sm mb-4 text-slate-600 dark:text-slate-300">
-        {mode === 'daily'
-          ? 'One puzzle a day. Your streak and statistics carry over every day.'
-          : 'Play as often as you like. No effect on daily streaks.'}
-      </p>
       {initial.memory && (
         <p role="status" className="text-center mb-4">
           Practice is available without saving in this browser.
@@ -262,21 +281,6 @@ function Game({ mode }: { mode: GameMode }) {
       )}
       {progress && puzzle && (
         <>
-          <label className="flex justify-center items-center gap-2 text-sm mb-4">
-            <input
-              type="checkbox"
-              checked={bonusEnabled}
-              disabled={finished || busy}
-              onChange={(event) => {
-                setBonusEnabled(event.target.checked)
-                setPreference(
-                  'qwordle:bonus-enabled',
-                  event.target.checked ? '1' : '0',
-                )
-              }}
-            />
-            Bonus turn: try the second word after a win
-          </label>
           <Grid
             pair={puzzle}
             guesses={progress.guesses}
@@ -306,26 +310,6 @@ function Game({ mode }: { mode: GameMode }) {
                     ? 'Both words found!'
                     : 'Bonus turn complete. Your original win still counts.'}
                 </p>
-              )}
-              {mode !== 'practice' && (
-                <button
-                  className={`${button} mt-2`}
-                  onClick={async () => {
-                    try {
-                      await shareStatus(
-                        progress.guesses,
-                        !won,
-                        getPreference('gameMode') === 'hard',
-                        puzzle,
-                      )
-                      showSuccess('Result shared')
-                    } catch {
-                      showError('Sharing was cancelled or unavailable.')
-                    }
-                  }}
-                >
-                  Share result
-                </button>
               )}
             </div>
           )}
@@ -409,6 +393,16 @@ function Game({ mode }: { mode: GameMode }) {
           setContrast(value)
           setStoredIsHighContrastMode(value)
         }}
+        isBonusTurn={bonusEnabled}
+        handleBonusTurn={(value: boolean) => {
+          setBonusEnabled(value)
+          setPreference('qwordle:bonus-enabled', value ? '1' : '0')
+        }}
+        isPracticeMode={mode === 'practice'}
+        handlePracticeMode={(value: boolean) => {
+          onModeChange(value ? 'practice' : 'daily')
+          setSettingsOpen(false)
+        }}
       />
     </>
   )
@@ -430,27 +424,9 @@ function initialGameInMemory(snapshot: Snapshot): Snapshot {
 export default function App() {
   const [mode, setMode] = useState<GameMode>('daily')
   return (
-    <main className="max-w-xl mx-auto px-2 pt-6 pb-8 dark:text-white">
-      <h1 className="text-2xl font-bold text-center mb-4">{GAME_TITLE}</h1>
-      <nav aria-label="Game mode" className="flex justify-center gap-2 mb-4">
-        {(['daily', 'practice'] as const).map((value) => (
-          <button
-            key={value}
-            aria-pressed={mode === value}
-            className={`${button} ${mode === value ? 'bg-indigo-600 text-white' : ''}`}
-            onClick={() => setMode(value)}
-          >
-            {labels[value]}
-          </button>
-        ))}
-      </nav>
-      <Game key={mode} mode={mode} />
-      <footer className="text-center mt-6 text-sm">
-        <a className="underline" href="/transfer">
-          Transfer / backup
-        </a>
-      </footer>
+    <div className="pt-2 pb-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+      <Game key={mode} mode={mode} onModeChange={setMode} />
       <AlertContainer />
-    </main>
+    </div>
   )
 }

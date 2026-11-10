@@ -31,8 +31,13 @@ async function typeWord(word: string) {
 it('mounting, switching modes, and opening dialogs do not write game data', async () => {
   const write = vi.spyOn(Storage.prototype, 'setItem')
   renderGame()
-  fireEvent.click(screen.getByRole('button', { name: 'Practice' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Daily puzzle' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+  fireEvent.click(screen.getByRole('switch', { name: 'Practice Mode' }))
+  expect(
+    screen.getByRole('button', { name: 'New practice puzzle' }),
+  ).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+  fireEvent.click(screen.getByRole('switch', { name: 'Practice Mode' }))
   fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
   expect(screen.getByRole('dialog')).toBeInTheDocument()
   await typeWord(getDailyPuzzle().solution_A)
@@ -41,7 +46,9 @@ it('mounting, switching modes, and opening dialogs do not write game data', asyn
 it('wins once, hides the other word for a bonus, and retains the daily result after a failed bonus', async () => {
   const puzzle = getDailyPuzzle()
   renderGame()
-  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+  fireEvent.click(screen.getByRole('switch', { name: 'Bonus Turn' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Close dialog' }))
   await typeWord(puzzle.solution_A)
   await screen.findByRole('region', { name: 'Bonus turn' })
   expect(
@@ -64,7 +71,8 @@ it('shows unreadable stats without replacing them, while still allowing practice
     'existing data has been kept',
   )
   expect(localStorage.getItem('gameStats')).toBe('{broken')
-  fireEvent.click(screen.getByRole('button', { name: 'Practice' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+  fireEvent.click(screen.getByRole('switch', { name: 'Practice Mode' }))
   expect(
     screen.getByRole('button', { name: 'New practice puzzle' }),
   ).toBeInTheDocument()
