@@ -1,6 +1,6 @@
 import { solution_A, solution_B } from './words'
 import { WordPair } from './puzzles'
-const classicPair = { solution_A, solution_B }
+const dailyPair = { solution_A, solution_B }
 
 export type CharStatus =
   | 'absent'
@@ -11,7 +11,7 @@ export type CharStatus =
 
 export const getStatuses = (
   guesses: string[],
-  pair: WordPair = classicPair,
+  pair: WordPair = dailyPair,
 ): { [key: string]: CharStatus } => {
   const { solution_A, solution_B } = pair
   const charObj: { [key: string]: CharStatus } = {}
@@ -40,7 +40,7 @@ export const getStatuses = (
 
 export const getGuessStatuses = (
   guess: string,
-  pair: WordPair = classicPair,
+  pair: WordPair = dailyPair,
 ): CharStatus[] => {
   const { solution_A, solution_B } = pair
   const splitSolution_A = solution_A.split('')

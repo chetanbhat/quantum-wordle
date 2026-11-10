@@ -35,7 +35,7 @@ async function enter(page: Page, word: string) {
   await page.keyboard.type(word)
   await page.keyboard.press('Enter')
 }
-const saved = (page: Page, mode = 'classic') =>
+const saved = (page: Page, mode = 'daily') =>
   page.evaluate(
     (mode) => JSON.parse(localStorage.getItem(`qwordle:v2:${mode}`) || 'null'),
     mode,
@@ -46,7 +46,7 @@ const original = (page: Page) =>
     localStorage.getItem('gameStats'),
   ])
 
-test('legacy streak survives win, bonus, refresh and mode changes', async ({
+test('legacy streak survives win, bonus, refresh and practice', async ({
   page,
 }) => {
   const errors: string[] = []
@@ -67,12 +67,7 @@ test('legacy streak survives win, bonus, refresh and mode changes', async ({
   await enter(page, pair.solution_B)
   await expect(page.getByText('Both words found!')).toBeVisible()
   expect((await saved(page)).stats.totalGames).toBe(24)
-  const classic = await saved(page)
-  await page.getByRole('button', { name: 'Fresh daily', exact: true }).click()
-  await enter(page, 'CRANE')
-  await expect
-    .poll(async () => (await saved(page, 'fresh'))?.guesses)
-    .toEqual(['CRANE'])
+  const daily = await saved(page)
   await page.getByRole('button', { name: 'Practice', exact: true }).click()
   await enter(page, 'CRANE')
   await expect
@@ -82,10 +77,10 @@ test('legacy streak survives win, bonus, refresh and mode changes', async ({
   await expect
     .poll(async () => (await saved(page, 'practice'))?.guesses)
     .toEqual([])
-  await page.getByRole('button', { name: 'Classic', exact: true }).click()
+  await page.getByRole('button', { name: 'Daily puzzle', exact: true }).click()
   await expect(page.getByText('Solved in 2/6!')).toBeVisible()
   expect(await original(page)).toEqual(before)
-  expect(await saved(page)).toEqual(classic)
+  expect(await saved(page)).toEqual(daily)
   expect(errors).toEqual([])
 })
 
@@ -166,7 +161,7 @@ test('storage quota failure cannot consume a guess or overwrite a streak', async
   await page.evaluate(() => {
     const set = Storage.prototype.setItem
     Storage.prototype.setItem = function (key, value) {
-      if (key === 'qwordle:v2:classic')
+      if (key === 'qwordle:v2:daily')
         throw new DOMException('Storage is full', 'QuotaExceededError')
       set.call(this, key, value)
     }
@@ -259,14 +254,14 @@ test('transfer link previews, imports into an empty browser, and refuses overwri
   await other.clock.setFixedTime(time)
   await other.goto(link)
   expect(await saved(other)).toBeNull()
-  await other.getByRole('button', { name: 'Import classic progress' }).click()
+  await other.getByRole('button', { name: 'Import daily progress' }).click()
   await expect(other.getByRole('status')).toContainText('imported successfully')
   const imported = await saved(other)
   expect(imported.stats.currentStreak).toBe(8)
   await other.goto(link)
-  await other.getByRole('button', { name: 'Import classic progress' }).click()
+  await other.getByRole('button', { name: 'Import daily progress' }).click()
   await expect(other.getByRole('status')).toContainText(
-    'already has classic progress',
+    'already has daily progress',
   )
   expect(await saved(other)).toEqual(imported)
   await receiver.close()
@@ -276,13 +271,13 @@ test('physical typing works immediately after mode and bonus controls', async ({
   page,
 }) => {
   await seed(page)
-  await page.getByRole('button', { name: 'Fresh daily', exact: true }).click()
+  await page.getByRole('button', { name: 'Practice', exact: true }).click()
   await page.keyboard.type('CRANE')
   await page.keyboard.press('Enter')
   await expect
-    .poll(async () => (await saved(page, 'fresh'))?.guesses)
+    .poll(async () => (await saved(page, 'practice'))?.guesses)
     .toEqual(['CRANE'])
-  await page.getByRole('button', { name: 'Classic', exact: true }).click()
+  await page.getByRole('button', { name: 'Daily puzzle', exact: true }).click()
   await page.getByRole('checkbox').check()
   await page.keyboard.type(pair.solution_A)
   await page.keyboard.press('Enter')

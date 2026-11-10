@@ -9,7 +9,12 @@ import {
   startPractice,
   validateProgress,
 } from '../src/lib/progress'
-import { getDailyPuzzle, newPracticePuzzle } from '../src/lib/puzzles'
+import {
+  FRESH_EDITIONS,
+  WORDLIST_CUTOVER_INDEX,
+  getDailyPuzzle,
+  newPracticePuzzle,
+} from '../src/lib/puzzles'
 import { emptyStats } from '../src/lib/stats'
 import {
   collectBackup,
@@ -31,7 +36,7 @@ const clock = new Date('2026-11-09T12:00:00Z').valueOf()
 beforeEach(() => {
   vi.spyOn(Date, 'now').mockReturnValue(clock)
 })
-const puzzle = () => getDailyPuzzle('classic')
+const puzzle = () => getDailyPuzzle()
 const guess = (word: string, offerBonus = false) => ({
   type: 'guess' as const,
   word,
@@ -86,7 +91,7 @@ it('saves final guess and streak atomically, leaving original keys and an exact 
   )
 })
 it.each(['bonus', 'skip-bonus'] as const)(
-  '%s never changes the classic win or statistics',
+  '%s never changes the daily win or statistics',
   async (type) => {
     const before = seedLegacy()
     const won = await commitAction(
@@ -163,7 +168,7 @@ it('refuses a stale tab with fewer guesses', async () => {
   )
   expect(readProgress(puzzle()).progress.stats).toEqual(stats)
 })
-it.each([LEGACY_BACKUP_KEY, progressKey('classic')])(
+it.each([LEGACY_BACKUP_KEY, progressKey('daily')])(
   'a failed write to %s preserves all original progress',
   async (failedKey) => {
     const before = seedLegacy(['CRANE'])
@@ -194,7 +199,7 @@ it('failed replacement preserves the previous atomic record byte for byte', asyn
   await expect(
     commitAction(previous, guess(puzzle().solution_A)),
   ).rejects.toThrow()
-  expect(localStorage.getItem(progressKey('classic'))).toBe(previous.revision)
+  expect(localStorage.getItem(progressKey('daily'))).toBe(previous.revision)
 })
 it.each([
   '{',
@@ -206,14 +211,14 @@ it.each([
   localStorage.setItem('gameStats', raw)
   expect(() => readProgress(puzzle())).toThrow()
   expect(localStorage.getItem('gameStats')).toBe(raw)
-  expect(localStorage.getItem(progressKey('classic'))).toBeNull()
+  expect(localStorage.getItem(progressKey('daily'))).toBeNull()
 })
 it('never falls back to zero stats for an invalid or future-version v2 save', () => {
   seedLegacy()
   for (const raw of ['{', '{"version":3}', 'null']) {
-    localStorage.setItem(progressKey('classic'), raw)
+    localStorage.setItem(progressKey('daily'), raw)
     expect(() => readProgress(puzzle())).toThrow()
-    expect(localStorage.getItem(progressKey('classic'))).toBe(raw)
+    expect(localStorage.getItem(progressKey('daily'))).toBe(raw)
   }
 })
 it('rejects older-client changes without merging or overwriting either save', async () => {
@@ -223,7 +228,7 @@ it('rejects older-client changes without merging or overwriting either save', as
   await expect(commitAction(saved, guess(puzzle().solution_A))).rejects.toThrow(
     'older game version',
   )
-  expect(localStorage.getItem(progressKey('classic'))).toBe(saved.revision)
+  expect(localStorage.getItem(progressKey('daily'))).toBe(saved.revision)
 })
 it('does not replace a daily puzzle after rollover, and preserves streak on the next day', async () => {
   seedLegacy()
@@ -239,6 +244,29 @@ it('does not replace a daily puzzle after rollover, and preserves streak on the 
   await commitAction(next, guess(puzzle().solution_A))
   expect(() => readProgress(oldPuzzle)).toThrow('another tab')
 })
+it('moves existing players onto the fresh list at the cutover with statistics intact', async () => {
+  const epoch = new Date('January 1, 2022 00:00:00').valueOf()
+  const lastClassicDay = epoch + (WORDLIST_CUTOVER_INDEX - 4) * 86_400_000
+  vi.mocked(Date.now).mockReturnValue(lastClassicDay)
+  seedLegacy()
+  const oldPuzzle = puzzle()
+  const saved = await commitAction(readProgress(oldPuzzle), guess('CRANE'))
+  expect(saved.progress.puzzle.number).toBe(WORDLIST_CUTOVER_INDEX - 1)
+  vi.mocked(Date.now).mockReturnValue(lastClassicDay + 86_400_000)
+  const next = readProgress(puzzle())
+  expect(next.progress.puzzle.number).toBe(WORDLIST_CUTOVER_INDEX)
+  expect(next.progress.guesses).toEqual([])
+  expect(next.progress.stats).toEqual(stats)
+  expect([
+    next.progress.puzzle.solution_A,
+    next.progress.puzzle.solution_B,
+  ]).toEqual([
+    FRESH_EDITIONS[0].pairs[0][0].toUpperCase(),
+    FRESH_EDITIONS[0].pairs[0][1].toUpperCase(),
+  ])
+  await commitAction(next, guess('CRANE'))
+  expect(() => readProgress(oldPuzzle)).toThrow('another tab')
+})
 it('rejects saved data writes without Web Locks and leaves originals intact', async () => {
   const before = seedLegacy()
   Object.defineProperty(navigator, 'locks', {
@@ -250,14 +278,8 @@ it('rejects saved data writes without Web Locks and leaves originals intact', as
   ).rejects.toThrow('cannot safely save')
   expect(collectBackup()).toEqual(before)
 })
-it('fresh and practice cannot alter any classic save or count classic statistics', async () => {
+it('practice cannot alter any daily save or count daily statistics', async () => {
   const before = seedLegacy()
-  const fresh = getDailyPuzzle('fresh')
-  const savedFresh = await commitAction(
-    readProgress(fresh),
-    guess(fresh.solution_A, true),
-  )
-  expect(savedFresh.progress.stats.totalGames).toBe(1)
   const practice = newPracticePuzzle()
   let savedPractice = await commitAction(
     readProgress(practice),
@@ -276,7 +298,7 @@ it('fresh and practice cannot alter any classic save or count classic statistics
     next.progress.puzzle.solution_B,
   ]).not.toEqual([practice.solution_A, practice.solution_B])
   assertLegacyUnchanged(before)
-  expect(localStorage.getItem(progressKey('classic'))).toBeNull()
+  expect(localStorage.getItem(progressKey('daily'))).toBeNull()
 })
 it('rejects impossible saved bonus and post-win extra guesses', () => {
   const progress = readProgress(puzzle()).progress
@@ -327,11 +349,11 @@ describe('transfer safety', () => {
   it('refuses to overwrite existing or malformed saves', async () => {
     const source = seedLegacy()
     const before = collectBackup()
-    await expect(importTransfer(source)).rejects.toThrow('already has classic')
+    await expect(importTransfer(source)).rejects.toThrow('already has daily')
     expect(collectBackup()).toEqual(before)
     localStorage.clear()
     localStorage.setItem('gameStats', '{')
-    await expect(importTransfer(source)).rejects.toThrow('already has classic')
+    await expect(importTransfer(source)).rejects.toThrow('already has daily')
     expect(localStorage.getItem('gameStats')).toBe('{')
   })
   it('rejects invalid transfers before performing any writes', async () => {
@@ -361,12 +383,12 @@ describe('transfer safety', () => {
       key,
       value,
     ) {
-      if (key === progressKey('classic'))
+      if (key === progressKey('daily'))
         throw new DOMException('Full', 'QuotaExceededError')
       write.call(this, key, value)
     })
     await expect(importTransfer(source)).rejects.toThrow('Full')
-    expect(localStorage.getItem(progressKey('classic'))).toBeNull()
+    expect(localStorage.getItem(progressKey('daily'))).toBeNull()
     vi.restoreAllMocks()
     await importTransfer(source)
     expect(readProgress(puzzle()).progress.stats).toEqual(stats)
@@ -383,5 +405,5 @@ it('rejects a legacy save changed after initial load but before the first v2 com
   await expect(
     commitAction(initial, guess(puzzle().solution_A)),
   ).rejects.toThrow('another tab')
-  expect(localStorage.getItem(progressKey('classic'))).toBeNull()
+  expect(localStorage.getItem(progressKey('daily'))).toBeNull()
 })

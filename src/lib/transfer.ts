@@ -18,9 +18,12 @@ export const BACKUP_KEYS = [
   'theme',
   'gameMode',
   'qwordle:bonus-enabled',
-  progressKey('classic'),
-  progressKey('fresh'),
+  progressKey('daily'),
   progressKey('practice'),
+  // Unshipped branch builds used these keys. They are never imported, but
+  // recognizing them keeps their backups decodable for safekeeping.
+  'qwordle:v2:classic',
+  'qwordle:v2:fresh',
   LEGACY_BACKUP_KEY,
   'qwordle:backup:transfer:v1',
 ]
@@ -52,12 +55,11 @@ export function decodeTransfer(encoded: string): Record<string, string | null> {
 }
 
 export function previewTransfer(data: Record<string, string | null>): Progress {
-  const current = data[progressKey('classic')]
+  const current = data[progressKey('daily')]
   if (current != null) {
     const saved: unknown = JSON.parse(current)
     validateProgress(saved)
-    if (saved.puzzle.mode !== 'classic')
-      throw new Error('Invalid classic save.')
+    if (saved.puzzle.mode !== 'daily') throw new Error('Invalid daily save.')
     if (
       saved.legacySource?.gameState !== (data.gameState ?? null) ||
       saved.legacySource?.gameStats !== (data.gameStats ?? null)
@@ -73,7 +75,7 @@ export function previewTransfer(data: Record<string, string | null>): Progress {
     validateStats(parsed)
     stats = parsed
   }
-  const puzzle = getDailyPuzzle('classic')
+  const puzzle = getDailyPuzzle()
   let guesses: string[] = []
   if (data.gameState != null) {
     const game: unknown = JSON.parse(data.gameState)
@@ -85,7 +87,7 @@ export function previewTransfer(data: Record<string, string | null>): Progress {
       guesses = game.guesses
   }
   if (data.gameStats == null && data.gameState == null)
-    throw new Error('No classic game data was found.')
+    throw new Error('No daily game data was found.')
   return {
     version: 2,
     puzzle,
@@ -100,21 +102,21 @@ export async function importTransfer(
   data: Record<string, string | null>,
 ): Promise<void> {
   await withProgressLock(() => {
-    // A transfer never overwrites or clears any existing classic save, even if
+    // A transfer never overwrites or clears any existing daily save, even if
     // it looks older or has fewer games. Merging streaks is ambiguous.
     if (
-      ['gameState', 'gameStats', progressKey('classic')].some(
+      ['gameState', 'gameStats', progressKey('daily')].some(
         (key) => localStorage.getItem(key) !== null,
       )
     )
       throw new Error(
-        'This browser already has classic progress. Nothing was replaced. Use a browser profile with no classic save.',
+        'This browser already has daily progress. Nothing was replaced. Use a browser profile with no daily save.',
       )
     const progress = previewTransfer(data)
     validateProgress(progress)
     const backupKey = 'qwordle:backup:transfer:v1'
     if (localStorage.getItem(backupKey) === null)
       localStorage.setItem(backupKey, JSON.stringify(data))
-    localStorage.setItem(progressKey('classic'), JSON.stringify(progress))
+    localStorage.setItem(progressKey('daily'), JSON.stringify(progress))
   })
 }

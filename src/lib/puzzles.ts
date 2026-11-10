@@ -1,7 +1,7 @@
 import freshPairs from '../constants/freshPairs.json'
 import { getWordsOfDay } from './words'
 
-export type GameMode = 'classic' | 'fresh' | 'practice'
+export type GameMode = 'daily' | 'practice'
 export type WordPair = { solution_A: string; solution_B: string }
 export type Puzzle = WordPair & {
   id: string
@@ -10,23 +10,29 @@ export type Puzzle = WordPair & {
   tomorrow?: number
 }
 
+// First puzzle number served from the fresh word list. This is a fixed
+// puzzle number, not a calendar date: every timezone flips at its own local
+// day boundary, exactly like the daily rollover. Chosen 2026-11-10 so all
+// timezones get at least 14 days on the original list (2026-11-24 UTC).
+export const WORDLIST_CUTOVER_INDEX = 1791
+
 // Published editions are immutable. Add future editions at a future puzzle
 // number; never edit, reorder, or remove an edition that has already been used.
 export const FRESH_EDITIONS = [
-  { id: 'fresh-2026-01', startsAt: 0, pairs: freshPairs },
+  { id: 'fresh-2026-01', startsAt: WORDLIST_CUTOVER_INDEX, pairs: freshPairs },
 ] as const
 
-export function getDailyPuzzle(
-  mode: 'classic' | 'fresh',
-  now = Date.now(),
-): Puzzle {
+// The single daily puzzle. Before the cutover it is the original pair for
+// the day; from the cutover on, the current fresh edition supplies the pair.
+// Statistics and streaks continue in the same record across the cutover.
+export function getDailyPuzzle(now = Date.now()): Puzzle {
   const classic = getWordsOfDay(now)
-  if (mode === 'classic') {
+  if (classic.solutionIndex < WORDLIST_CUTOVER_INDEX) {
     return {
       ...classic,
-      mode,
+      mode: 'daily',
       number: classic.solutionIndex,
-      id: `classic:${classic.solutionIndex}`,
+      id: `daily:${classic.solutionIndex}`,
     }
   }
   const edition = [...FRESH_EDITIONS]
@@ -37,8 +43,8 @@ export function getDailyPuzzle(
       (classic.solutionIndex - edition.startsAt) % edition.pairs.length
     ]
   return {
-    mode,
-    id: `${edition.id}:${classic.solutionIndex}`,
+    mode: 'daily',
+    id: `daily:${classic.solutionIndex}`,
     number: classic.solutionIndex,
     solution_A: pair[0].toUpperCase(),
     solution_B: pair[1].toUpperCase(),

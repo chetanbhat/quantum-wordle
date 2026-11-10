@@ -89,9 +89,7 @@ export function validateProgress(value: unknown): asserts value is Progress {
   requireValid(object(value) && value.version === 2 && object(value.puzzle))
   validateGame({ ...value.puzzle, guesses: value.guesses })
   validateStats(value.stats)
-  requireValid(
-    ['classic', 'fresh', 'practice'].includes(value.puzzle.mode as string),
-  )
+  requireValid(['daily', 'practice'].includes(value.puzzle.mode as string))
   requireValid(
     typeof value.puzzle.id === 'string' && integer(value.puzzle.number),
   )
@@ -121,7 +119,7 @@ export function validateProgress(value: unknown): asserts value is Progress {
       )
   }
   requireValid(
-    value.puzzle.mode !== 'classic' || value.legacySource !== undefined,
+    value.puzzle.mode !== 'daily' || value.legacySource !== undefined,
   )
 }
 function parse(raw: string): unknown {
@@ -153,7 +151,7 @@ export function readProgress(puzzle: Puzzle): Snapshot {
     validateProgress(saved)
     requireValid(saved.puzzle.mode === puzzle.mode)
     if (
-      puzzle.mode === 'classic' &&
+      puzzle.mode === 'daily' &&
       JSON.stringify(saved.legacySource) !== JSON.stringify(legacySource())
     ) {
       throw new Error(
@@ -179,7 +177,7 @@ export function readProgress(puzzle: Puzzle): Snapshot {
     }
   }
   const progress = emptyProgress(puzzle)
-  if (puzzle.mode === 'classic') {
+  if (puzzle.mode === 'daily') {
     const source = legacySource()
     if (source.gameStats !== null) {
       const stats = parse(source.gameStats)
@@ -223,7 +221,7 @@ function writeProgress(snapshot: Snapshot, next: Progress): Snapshot {
   validateProgress(next)
   const key = progressKey(next.puzzle.mode)
   if (localStorage.getItem(key) !== snapshot.revision) throw new Error(conflict)
-  if (next.puzzle.mode === 'classic') {
+  if (next.puzzle.mode === 'daily') {
     if (JSON.stringify(next.legacySource) !== JSON.stringify(legacySource()))
       throw new Error(conflict)
     if (localStorage.getItem(LEGACY_BACKUP_KEY) === null) {
@@ -287,10 +285,7 @@ export async function commitAction(
 ): Promise<Snapshot> {
   return withProgressLock(() => {
     const puzzle = snapshot.progress.puzzle
-    if (
-      puzzle.mode !== 'practice' &&
-      getDailyPuzzle(puzzle.mode).id !== puzzle.id
-    )
+    if (puzzle.mode !== 'practice' && getDailyPuzzle().id !== puzzle.id)
       throw new Error(
         'A new daily puzzle is available. Reload to start it; your saved progress is kept.',
       )

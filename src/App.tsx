@@ -36,8 +36,7 @@ import { shareStatus } from './lib/share'
 import './App.css'
 
 const labels: Record<GameMode, string> = {
-  classic: 'Classic',
-  fresh: 'Fresh daily',
+  daily: 'Daily puzzle',
   practice: 'Practice',
 }
 const button =
@@ -53,8 +52,7 @@ function initialGame(mode: GameMode): {
   memory: boolean
 } {
   try {
-    const puzzle =
-      mode === 'practice' ? getPracticePuzzle() : getDailyPuzzle(mode)
+    const puzzle = mode === 'practice' ? getPracticePuzzle() : getDailyPuzzle()
     return {
       snapshot: readProgress(puzzle),
       error: '',
@@ -124,7 +122,7 @@ function Game({ mode }: { mode: GameMode }) {
 
   useEffect(() => {
     if (!puzzle || mode === 'practice') return
-    const check = () => setExpired(getDailyPuzzle(mode).id !== puzzle.id)
+    const check = () => setExpired(getDailyPuzzle().id !== puzzle.id)
     const timer = window.setInterval(check, 1000)
     window.addEventListener('focus', check)
     return () => {
@@ -138,7 +136,7 @@ function Game({ mode }: { mode: GameMode }) {
       if (
         event.key === null ||
         event.key === `qwordle:v2:${mode}` ||
-        (mode === 'classic' && ['gameState', 'gameStats'].includes(event.key))
+        (mode === 'daily' && ['gameState', 'gameStats'].includes(event.key))
       )
         setStale(true)
     }
@@ -227,7 +225,7 @@ function Game({ mode }: { mode: GameMode }) {
         </button>
         {mode !== 'practice' && (
           <button className={button} onClick={() => setStatsOpen(true)}>
-            {mode === 'classic' ? 'Classic stats' : 'Fresh stats'}
+            Statistics
           </button>
         )}
         <button className={button} onClick={() => setSettingsOpen(true)}>
@@ -235,11 +233,9 @@ function Game({ mode }: { mode: GameMode }) {
         </button>
       </div>
       <p className="text-center text-sm mb-4 text-slate-600 dark:text-slate-300">
-        {mode === 'classic'
-          ? 'The original daily puzzle and your classic streak.'
-          : mode === 'fresh'
-            ? 'A new collection of pairs. A separate daily streak.'
-            : 'Play as often as you like. No effect on daily streaks.'}
+        {mode === 'daily'
+          ? 'One puzzle a day. Your streak and statistics carry over every day.'
+          : 'Play as often as you like. No effect on daily streaks.'}
       </p>
       {initial.memory && (
         <p role="status" className="text-center mb-4">
@@ -432,12 +428,12 @@ function initialGameInMemory(snapshot: Snapshot): Snapshot {
 }
 
 export default function App() {
-  const [mode, setMode] = useState<GameMode>('classic')
+  const [mode, setMode] = useState<GameMode>('daily')
   return (
     <main className="max-w-xl mx-auto px-2 pt-6 pb-8 dark:text-white">
       <h1 className="text-2xl font-bold text-center mb-4">{GAME_TITLE}</h1>
       <nav aria-label="Game mode" className="flex justify-center gap-2 mb-4">
-        {(['classic', 'fresh', 'practice'] as const).map((value) => (
+        {(['daily', 'practice'] as const).map((value) => (
           <button
             key={value}
             aria-pressed={mode === value}

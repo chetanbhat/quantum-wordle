@@ -38,7 +38,7 @@ This project is still a work-in-progress. Although the current version is playab
 
 ## Game modes
 
-Classic keeps the original daily pairs and streak rules. Fresh daily offers a separate 365-pair collection with its own statistics. Enable the optional bonus turn before winning to try the other word with one extra guess; the first win remains final. Practice supports unlimited puzzles without changing daily streaks.
+There is one daily puzzle. It serves the original daily pairs until the word-list cutover (puzzle 1791, 2026-11-24), then moves automatically onto a refreshed 365-pair collection; streaks and statistics carry over. Enable the optional bonus turn before winning to try the other word with one extra guess; the first win remains final. Practice supports unlimited puzzles without changing daily streaks.
 
 ## Development
 
@@ -59,7 +59,7 @@ npm run check
 npm audit --audit-level=low
 ```
 
-The suite covers classic schedule compatibility, saved-data safety, isolated modes, transfers, and Chromium/Firefox/WebKit/mobile browser flows. Read [the compatibility and release notes](docs/compatibility.md) before changing puzzle selection, storage, or published word lists. They also describe fresh-list editions and the required rollback compatibility.
+The suite covers classic schedule compatibility, the word-list cutover, saved-data safety, practice isolation, transfers, and Chromium/Firefox/WebKit/mobile browser flows. Read [the compatibility and release notes](docs/compatibility.md) before changing puzzle selection, storage, or published word lists. They also describe fresh-list editions and the required rollback compatibility.
 
 Work on feature branches and review the tested preview before production. Netlify continues to publish `build/`; no production deployment is triggered by a local build.
 

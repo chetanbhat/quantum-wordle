@@ -2,17 +2,13 @@ import { expect, it, vi } from 'vitest'
 import { generateEmojiGrid, shareStatus, shareText } from '../src/lib/share'
 import { getDailyPuzzle, newPracticePuzzle } from '../src/lib/puzzles'
 
-it('retains classic share format and separates fresh/practice results', () => {
-  const puzzle = getDailyPuzzle('classic')
+it('retains the daily share format and separates practice results', () => {
+  const puzzle = getDailyPuzzle()
   expect(shareText([puzzle.solution_A], false, false, puzzle)).toBe(
     `Qwordle ${puzzle.number} 1/6\n\n🟩🟩🟩🟩🟩`,
   )
   expect(shareText(['CRANE'], true, true, puzzle)).toMatch(
     /^Qwordle \d+ X\/6\*/,
-  )
-  const fresh = getDailyPuzzle('fresh')
-  expect(shareText([fresh.solution_A], false, false, fresh)).toContain(
-    `Fresh ${fresh.number} 1/6`,
   )
   const practice = newPracticePuzzle()
   expect(shareText([practice.solution_A], false, false, practice)).toContain(

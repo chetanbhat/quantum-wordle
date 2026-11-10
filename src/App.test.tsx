@@ -31,16 +31,15 @@ async function typeWord(word: string) {
 it('mounting, switching modes, and opening dialogs do not write game data', async () => {
   const write = vi.spyOn(Storage.prototype, 'setItem')
   renderGame()
-  fireEvent.click(screen.getByRole('button', { name: 'Fresh daily' }))
   fireEvent.click(screen.getByRole('button', { name: 'Practice' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Classic' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Daily puzzle' }))
   fireEvent.click(screen.getByRole('button', { name: 'How to play' }))
   expect(screen.getByRole('dialog')).toBeInTheDocument()
-  await typeWord(getDailyPuzzle('classic').solution_A)
+  await typeWord(getDailyPuzzle().solution_A)
   expect(write).not.toHaveBeenCalled()
 })
-it('wins once, hides the other word for a bonus, and retains the classic result after a failed bonus', async () => {
-  const puzzle = getDailyPuzzle('classic')
+it('wins once, hides the other word for a bonus, and retains the daily result after a failed bonus', async () => {
+  const puzzle = getDailyPuzzle()
   renderGame()
   fireEvent.click(screen.getByRole('checkbox'))
   await typeWord(puzzle.solution_A)
@@ -48,13 +47,13 @@ it('wins once, hides the other word for a bonus, and retains the classic result 
   expect(
     screen.queryByText(new RegExp(`The words were`)),
   ).not.toBeInTheDocument()
-  const before = JSON.parse(localStorage.getItem(progressKey('classic'))!)
+  const before = JSON.parse(localStorage.getItem(progressKey('daily'))!)
   expect(before.stats.totalGames).toBe(1)
   await typeWord('CRANE')
   await screen.findByText(
     'Bonus turn complete. Your original win still counts.',
   )
-  const after = JSON.parse(localStorage.getItem(progressKey('classic'))!)
+  const after = JSON.parse(localStorage.getItem(progressKey('daily'))!)
   expect(after.stats).toEqual(before.stats)
   expect(after.guesses).toEqual(before.guesses)
 })
@@ -71,7 +70,7 @@ it('shows unreadable stats without replacing them, while still allowing practice
   ).toBeInTheDocument()
 })
 it('reloads legacy completed games without changing streaks', async () => {
-  const puzzle = getDailyPuzzle('classic')
+  const puzzle = getDailyPuzzle()
   localStorage.setItem(
     'gameStats',
     JSON.stringify({
@@ -90,7 +89,7 @@ it('reloads legacy completed games without changing streaks', async () => {
   renderGame()
   expect(screen.getByText('Solved in 1/6!')).toBeInTheDocument()
   await typeWord(puzzle.solution_B)
-  expect(localStorage.getItem(progressKey('classic'))).toBeNull()
+  expect(localStorage.getItem(progressKey('daily'))).toBeNull()
 })
 it('does not apply a transfer simply by opening its URL', async () => {
   const source = { gameStats: JSON.stringify(emptyStats()), gameState: null }
@@ -102,13 +101,11 @@ it('does not apply a transfer simply by opening its URL', async () => {
   const write = vi.spyOn(Storage.prototype, 'setItem')
   render(<TransferPage />)
   expect(
-    screen.getByRole('button', { name: 'Import classic progress' }),
+    screen.getByRole('button', { name: 'Import daily progress' }),
   ).toBeInTheDocument()
   expect(write).not.toHaveBeenCalled()
   expect(window.location.search).toBe('')
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Import classic progress' }),
-  )
+  fireEvent.click(screen.getByRole('button', { name: 'Import daily progress' }))
   await waitFor(() =>
     expect(screen.getByRole('status')).toHaveTextContent(
       'imported successfully',

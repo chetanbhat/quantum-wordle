@@ -57,9 +57,9 @@ export function TransferPage() {
         {GAME_TITLE} transfer / backup
       </h1>
       <p className="mb-4">
-        Transfer your classic progress to a browser with no classic save.
-        Existing progress is never replaced. Fresh daily and practice saves are
-        included in the backup file for safekeeping, but are not imported.
+        Transfer your daily progress to a browser with no daily save. Existing
+        progress is never replaced. Practice saves are included in the backup
+        file for safekeeping, but are not imported.
       </p>
       <button className="border rounded px-3 py-2 mb-4" onClick={download}>
         Download full backup
@@ -69,7 +69,7 @@ export function TransferPage() {
           {preview.error && <p role="alert">{preview.error}</p>}
           {preview.progress && (
             <>
-              <h2 className="font-semibold">Review classic progress</h2>
+              <h2 className="font-semibold">Review daily progress</h2>
               <p>
                 {preview.progress.stats.totalGames} games, current streak{' '}
                 {preview.progress.stats.currentStreak}, best streak{' '}
@@ -85,7 +85,7 @@ export function TransferPage() {
                     await importTransfer(preview.data)
                     setDone(true)
                     setMessage(
-                      'Classic progress imported successfully. You can return to the game.',
+                      'Daily progress imported successfully. You can return to the game.',
                     )
                   } catch (error) {
                     setMessage(
@@ -98,7 +98,7 @@ export function TransferPage() {
                   }
                 }}
               >
-                Import classic progress
+                Import daily progress
               </button>
             </>
           )}

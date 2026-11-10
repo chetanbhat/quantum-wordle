@@ -10,7 +10,11 @@ import {
 } from './fixtures/legacy-statuses'
 import { WORDS_1, WORDS_2 } from '../src/constants/wordlist'
 import { VALID_GUESSES } from '../src/constants/validGuesses'
-import { FRESH_EDITIONS, getDailyPuzzle } from '../src/lib/puzzles'
+import {
+  FRESH_EDITIONS,
+  WORDLIST_CUTOVER_INDEX,
+  getDailyPuzzle,
+} from '../src/lib/puzzles'
 
 it('preserves the classic word list byte for byte', () => {
   expect(
@@ -63,7 +67,7 @@ it('retains duplicate-letter and interference rules for explicit pairs', () => {
   ).toEqual(['correct', 'absent', 'absent', 'correct', 'absent'])
 })
 
-describe('fresh editions', () => {
+describe('fresh list editions', () => {
   it('contains 365 unique valid disjoint pairs, none from classic', () => {
     const classic = new Set(
       WORDS_1.map((word, i) => [word, WORDS_2[i]].sort().join(':')),
@@ -82,15 +86,40 @@ describe('fresh editions', () => {
     }
     expect(seen.size).toBe(365)
   })
-  it('uses independent puzzle identities and preserves the classic schedule', () => {
-    const now = new Date('2026-11-09T12:00:00Z').valueOf()
-    const classic = getDailyPuzzle('classic', now)
-    const fresh = getDailyPuzzle('fresh', now)
-    expect(classic.id).not.toBe(fresh.id)
-    expect(classic.number).toBe(fresh.number)
-    expect(classic.solution_A).toBe(getWordsOfDay(now).solution_A)
-    expect(getDailyPuzzle('fresh', now)).toEqual(fresh)
-    expect(getDailyPuzzle('fresh', now + 86_400_000).id).not.toEqual(fresh.id)
+})
+
+describe('word-list cutover', () => {
+  // Epoch-relative times yield the same puzzle index in every timezone, so
+  // this boundary holds for players everywhere. See scripts/test-timezones.mjs.
+  const atIndex = (index: number, offset = 3_600_000) =>
+    new Date('January 1, 2022 00:00:00').valueOf() +
+    (index - 3) * 86_400_000 +
+    offset
+  it('serves the original pairs until the cutover, then the fresh list', () => {
+    for (const index of [
+      WORDLIST_CUTOVER_INDEX - 30,
+      WORDLIST_CUTOVER_INDEX - 1,
+    ]) {
+      const daily = getDailyPuzzle(atIndex(index))
+      expect(daily.number).toBe(index)
+      expect(daily.solution_A).toBe(getWordsOfDay(atIndex(index)).solution_A)
+      expect(daily.solution_B).toBe(getWordsOfDay(atIndex(index)).solution_B)
+    }
+    const firstFresh = getDailyPuzzle(atIndex(WORDLIST_CUTOVER_INDEX))
+    expect(firstFresh.number).toBe(WORDLIST_CUTOVER_INDEX)
+    expect([firstFresh.solution_A, firstFresh.solution_B]).toEqual([
+      FRESH_EDITIONS[0].pairs[0][0].toUpperCase(),
+      FRESH_EDITIONS[0].pairs[0][1].toUpperCase(),
+    ])
+    expect(firstFresh.id).not.toBe(
+      getDailyPuzzle(atIndex(WORDLIST_CUTOVER_INDEX - 1)).id,
+    )
+    expect(getDailyPuzzle(atIndex(WORDLIST_CUTOVER_INDEX, 80_000_000))).toEqual(
+      firstFresh,
+    )
+    expect(getDailyPuzzle(atIndex(WORDLIST_CUTOVER_INDEX + 1)).id).not.toBe(
+      firstFresh.id,
+    )
   })
 })
 

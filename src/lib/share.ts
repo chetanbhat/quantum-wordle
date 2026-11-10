@@ -32,19 +32,14 @@ export function shareText(
   isHardMode: boolean,
   puzzle: Puzzle,
 ): string {
-  const label =
-    puzzle.mode === 'classic'
-      ? `${puzzle.number}`
-      : puzzle.mode === 'fresh'
-        ? `Fresh ${puzzle.number}`
-        : 'Practice'
+  const label = puzzle.mode === 'daily' ? `${puzzle.number}` : 'Practice'
   return `${GAME_TITLE} ${label} ${lost ? 'X' : guesses.length}/6${isHardMode ? '*' : ''}\n\n${generateEmojiGrid(guesses, puzzle)}`
 }
 export async function shareStatus(
   guesses: string[],
   lost: boolean,
   isHardMode: boolean,
-  puzzle = getDailyPuzzle('classic'),
+  puzzle = getDailyPuzzle(),
 ) {
   const text = shareText(guesses, lost, isHardMode, puzzle)
   if (navigator.canShare?.({ text }) && navigator.share)
