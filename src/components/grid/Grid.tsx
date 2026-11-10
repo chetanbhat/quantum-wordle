@@ -1,9 +1,11 @@
+import { WordPair } from '../../lib/puzzles'
 import { MAX_CHALLENGES } from '../../constants/settings'
 import { CompletedRow } from './CompletedRow'
 import { CurrentRow } from './CurrentRow'
 import { EmptyRow } from './EmptyRow'
 
 type Props = {
+  pair?: WordPair
   guesses: string[]
   currentGuess: string
   isRevealing?: boolean
@@ -11,6 +13,7 @@ type Props = {
 }
 
 export const Grid = ({
+  pair,
   guesses,
   currentGuess,
   isRevealing,
@@ -25,6 +28,7 @@ export const Grid = ({
     <div className="pb-6">
       {guesses.map((guess, i) => (
         <CompletedRow
+          pair={pair}
           key={i}
           guess={guess}
           isRevealing={isRevealing && guesses.length - 1 === i}

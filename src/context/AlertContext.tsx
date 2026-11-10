@@ -68,21 +68,21 @@ export const AlertProvider = ({ children }: Props) => {
         }
       }, delayMs)
     },
-    [setStatus, setMessage, setIsVisible]
+    [setStatus, setMessage, setIsVisible],
   )
 
   const showError = useCallback(
     (newMessage: string, options?: ShowOptions) => {
       show('error', newMessage, options)
     },
-    [show]
+    [show],
   )
 
   const showSuccess = useCallback(
     (newMessage: string, options?: ShowOptions) => {
       show('success', newMessage, options)
     },
-    [show]
+    [show],
   )
 
   return (

@@ -2,23 +2,61 @@ name: Test
 on:
   pull_request:
   push:
-    branches:
-      - main
-
+    branches: [main, 'feature/**']
 permissions:
   contents: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c8454efe5d0bdefd25384362fe217428ca277d57 # v2.2.0
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2
         with:
-          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-      - uses: actions/checkout@dc323e67f16fb5f7663d20ff7941f27f5809e9b6 # v2.6.0
-      - run: |
-          npm install
-      - run: |
-          npm run test
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:timezones
+      - run: npm audit --audit-level=low
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e
+      - name: Build production container
+        run: docker build --target=prod -t qwordle:test .
+      - name: Check container SPA routes
+        run: |
+          docker run -d --name qwordle-smoke -p 8080:80 qwordle:test
+          trap 'docker rm -f qwordle-smoke' EXIT
+          # nginx needs a moment after `docker run` returns: the published
+          # port accepts connections before nginx is ready, which surfaces
+          # as `curl: (56) Recv failure`, not a retried refused connection.
+          # Poll until the server answers instead of racing a single request.
+          ready=0
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://localhost:8080/ -o /tmp/qwordle-index.html; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then
+            echo "nginx never became ready"
+            docker logs qwordle-smoke || true
+            exit 1
+          fi
+          curl --fail http://localhost:8080/transfer -o /tmp/qwordle-transfer.html
+          cmp /tmp/qwordle-index.html /tmp/qwordle-transfer.html
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: browser-test-results
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

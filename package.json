@@ -3,37 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@headlessui/react": "^1.4.2",
-    "@heroicons/react": "^1.0.5",
-    "@testing-library/jest-dom": "^5.16.1",
-    "@testing-library/react": "^12.1.2",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.4.0",
-    "@types/node": "^16.11.19",
-    "@types/react": "^17.0.38",
-    "@types/react-dom": "^17.0.11",
-    "classnames": "^2.3.1",
-    "react": "^17.0.2",
-    "react-countdown": "^2.3.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.5.4",
-    "web-vitals": "^2.1.3"
+    "@headlessui/react": "2.2.10",
+    "@heroicons/react": "1.0.6",
+    "classnames": "2.5.1",
+    "react": "19.3.1",
+    "react-countdown": "2.3.6",
+    "react-dom": "19.3.1"
   },
   "scripts": {
-    "build": "react-scripts build",
-    "eject": "react-scripts eject",
-    "fix": "prettier --write src",
-    "lint": "prettier --check src",
-    "start": "react-scripts start",
-    "test": "react-scripts test",
-    "prepare": "husky install"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "start": "vite --host 0.0.0.0 --port 3000",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check src tests *.ts *.json *.md",
+    "fix": "prettier --write src tests *.ts *.json *.md",
+    "check": "npm run typecheck && npm run lint && npm test && npm run test:timezones && npm run build && npm run test:e2e",
+    "test:timezones": "node scripts/test-timezones.mjs"
   },
   "browserslist": {
     "production": [
@@ -48,14 +37,25 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.2",
-    "husky": "^7.0.4",
-    "lint-staged": "^12.3.2",
-    "postcss": "^8.4.5",
-    "prettier": "2.5.1",
-    "tailwindcss": "^3.0.12"
+    "@playwright/test": "1.65.0",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "autoprefixer": "10.6.2",
+    "jsdom": "31.0.0",
+    "postcss": "8.5.32",
+    "prettier": "3.6.2",
+    "tailwindcss": "3.4.19",
+    "typescript": "7.0.2",
+    "vite": "8.3.7",
+    "vitest": "5.1.0"
   },
-  "lint-staged": {
-    "src/*.{ts,tsx,js,jsx,css,md}": "prettier --write"
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

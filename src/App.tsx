@@ -1,312 +1,452 @@
+import { useEffect, useRef, useState } from 'react'
 import {
   InformationCircleIcon,
   ChartBarIcon,
   CogIcon,
 } from '@heroicons/react/outline'
-import { useState, useEffect } from 'react'
 import { Grid } from './components/grid/Grid'
+import { CurrentRow } from './components/grid/CurrentRow'
+import { CompletedRow } from './components/grid/CompletedRow'
 import { Keyboard } from './components/keyboard/Keyboard'
 import { InfoModal } from './components/modals/InfoModal'
 import { StatsModal } from './components/modals/StatsModal'
 import { SettingsModal } from './components/modals/SettingsModal'
-import {
-  GAME_TITLE,
-  WIN_MESSAGES,
-  GAME_COPIED_MESSAGE,
-  NOT_ENOUGH_LETTERS_MESSAGE,
-  WORD_NOT_FOUND_MESSAGE,
-  CORRECT_WORD_MESSAGE,
-  HARD_MODE_ALERT_MESSAGE,
-} from './constants/strings'
-import {
-  MAX_WORD_LENGTH,
-  MAX_CHALLENGES,
-  ALERT_TIME_MS,
-  REVEAL_TIME_MS,
-  GAME_LOST_INFO_DELAY,
-} from './constants/settings'
-import {
-  isWordInWordList,
-  isWinningWord,
-  solution_A,
-  solution_B,
-  //findFirstUnusedReveal,
-} from './lib/words'
-import { addStatsForCompletedGame, loadStats } from './lib/stats'
-import {
-  loadGameStateFromLocalStorage,
-  saveGameStateToLocalStorage,
-  setStoredIsHighContrastMode,
-  getStoredIsHighContrastMode,
-} from './lib/localStorage'
-
-import './App.css'
 import { AlertContainer } from './components/alerts/AlertContainer'
 import { useAlert } from './context/AlertContext'
+import { GAME_TITLE } from './constants/strings'
+import {
+  getPreference,
+  setPreference,
+  getStoredIsHighContrastMode,
+  setStoredIsHighContrastMode,
+} from './lib/localStorage'
+import {
+  GameMode,
+  getDailyPuzzle,
+  isWon,
+  isFinished,
+  newPracticePuzzle,
+} from './lib/puzzles'
+import {
+  Snapshot,
+  advance,
+  commitAction,
+  getPracticePuzzle,
+  readProgress,
+  startPractice,
+} from './lib/progress'
+import { emptyStats } from './lib/stats'
+import { isWordInWordList } from './lib/words'
+import {
+  ALERT_TIME_MS,
+  MAX_WORD_LENGTH,
+  REVEAL_TIME_MS,
+} from './constants/settings'
+import './App.css'
 
-function App() {
-  const prefersDarkMode = window.matchMedia(
-    '(prefers-color-scheme: dark)'
-  ).matches
+const button =
+  'rounded border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm disabled:opacity-50'
+const errorText = (error: unknown) =>
+  error instanceof Error
+    ? error.message
+    : 'Your game could not be saved. Existing data has been kept. Please reload before trying again.'
 
-  const { showError: showErrorAlert, showSuccess: showSuccessAlert } =
-    useAlert()
+function initialGame(mode: GameMode): {
+  snapshot: Snapshot | null
+  error: string
+  memory: boolean
+} {
+  try {
+    const puzzle = mode === 'practice' ? getPracticePuzzle() : getDailyPuzzle()
+    return {
+      snapshot: readProgress(puzzle),
+      error: '',
+      memory: mode === 'practice' && !navigator.locks?.request,
+    }
+  } catch (error) {
+    if (mode === 'practice') {
+      return {
+        snapshot: {
+          revision: null,
+          progress: {
+            version: 2,
+            puzzle: newPracticePuzzle(),
+            guesses: [],
+            stats: emptyStats(),
+            bonus: { offered: false, guess: null, skipped: false },
+          },
+        },
+        error: '',
+        memory: true,
+      }
+    }
+    return { snapshot: null, error: errorText(error), memory: false }
+  }
+}
+
+function Game({
+  mode,
+  onModeChange,
+}: {
+  mode: GameMode
+  onModeChange: (mode: GameMode) => void
+}) {
+  const [initial] = useState(() => initialGame(mode))
+  const [snapshot, setSnapshot] = useState(initial.snapshot)
+  const [error, setError] = useState(initial.error)
   const [currentGuess, setCurrentGuess] = useState('')
-  const [isGameWon, setIsGameWon] = useState(false)
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false)
-  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false)
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
-  const [currentRowClass, setCurrentRowClass] = useState('')
-  const [isGameLost, setIsGameLost] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(
-    localStorage.getItem('theme')
-      ? localStorage.getItem('theme') === 'dark'
-      : prefersDarkMode
-      ? true
-      : false
+  const [bonusEnabled, setBonusEnabled] = useState(
+    () => getPreference('qwordle:bonus-enabled') === '1',
   )
-  const [isHighContrastMode, setIsHighContrastMode] = useState(
-    getStoredIsHighContrastMode()
-  )
+  const [infoOpen, setInfoOpen] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
   const [isRevealing, setIsRevealing] = useState(false)
-  const [guesses, setGuesses] = useState<string[]>(() => {
-    const loaded = loadGameStateFromLocalStorage()
-    if (loaded == null) {
-      return []
-    }
-
-    if (
-      loaded?.solution_A !== solution_A ||
-      loaded?.solution_B !== solution_B
-    ) {
-      return []
-    }
-    const gameWasWon =
-      loaded.guesses.includes(solution_A) || loaded.guesses.includes(solution_B)
-    if (gameWasWon) {
-      setIsGameWon(true)
-    }
-    if (loaded.guesses.length === MAX_CHALLENGES && !gameWasWon) {
-      setIsGameLost(true)
-      showErrorAlert(CORRECT_WORD_MESSAGE(solution_A, solution_B), {
-        persist: true,
-      })
-    }
-    return loaded.guesses
-  })
-
-  const [stats, setStats] = useState(() => loadStats())
-
-  const [isHardMode, setIsHardMode] = useState(
-    localStorage.getItem('gameMode')
-      ? localStorage.getItem('gameMode') === 'hard'
-      : false
+  const [currentRowClass, setCurrentRowClass] = useState('')
+  const [expired, setExpired] = useState(false)
+  const [stale, setStale] = useState(false)
+  const [dark, setDark] = useState(() =>
+    getPreference('theme')
+      ? getPreference('theme') === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
+  const [contrast, setContrast] = useState(getStoredIsHighContrastMode)
+  const { showError, showSuccess } = useAlert()
+  const progress = snapshot?.progress
+  const puzzle = progress?.puzzle
+  const won = progress ? isWon(progress.guesses, progress.puzzle) : false
+  const finished = progress
+    ? isFinished(progress.guesses, progress.puzzle)
+    : false
+  const bonusPending = Boolean(
+    won &&
+      progress?.bonus.offered &&
+      progress.bonus.guess === null &&
+      !progress.bonus.skipped,
+  )
+  const modalOpen = infoOpen || statsOpen || settingsOpen
 
   useEffect(() => {
-    // if no game state on load,
-    // show the user the how-to info modal
-    if (!loadGameStateFromLocalStorage()) {
-      setIsInfoModalOpen(true)
-    }
-  }, [])
+    document.documentElement.classList.toggle('dark', dark)
+    document.documentElement.classList.toggle('high-contrast', contrast)
+  }, [dark, contrast])
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+    if (!puzzle || mode === 'practice') return
+    const check = () => setExpired(getDailyPuzzle().id !== puzzle.id)
+    const timer = window.setInterval(check, 1000)
+    window.addEventListener('focus', check)
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('focus', check)
     }
-
-    if (isHighContrastMode) {
-      document.documentElement.classList.add('high-contrast')
-    } else {
-      document.documentElement.classList.remove('high-contrast')
-    }
-  }, [isDarkMode, isHighContrastMode])
-
-  const handleDarkMode = (isDark: boolean) => {
-    setIsDarkMode(isDark)
-    localStorage.setItem('theme', isDark ? 'dark' : 'light')
-  }
-
-  const handleHardMode = (isHard: boolean) => {
-    if (guesses.length === 0 || localStorage.getItem('gameMode') === 'hard') {
-      setIsHardMode(isHard)
-      localStorage.setItem('gameMode', isHard ? 'hard' : 'normal')
-    } else {
-      showErrorAlert(HARD_MODE_ALERT_MESSAGE)
-    }
-  }
-
-  const handleHighContrastMode = (isHighContrast: boolean) => {
-    setIsHighContrastMode(isHighContrast)
-    setStoredIsHighContrastMode(isHighContrast)
-  }
+  }, [puzzle, mode])
 
   useEffect(() => {
-    saveGameStateToLocalStorage({ guesses, solution_A, solution_B })
-  }, [guesses])
-
-  useEffect(() => {
-    if (isGameWon) {
-      const win_messages = WIN_MESSAGES(solution_A, solution_B)
-      const winMessage =
-        win_messages[Math.floor(Math.random() * win_messages.length)]
-      const delayMs = REVEAL_TIME_MS * MAX_WORD_LENGTH
-
-      showSuccessAlert(winMessage, {
-        delayMs,
-        onClose: () => setIsStatsModalOpen(true),
-      })
+    const listener = (event: StorageEvent) => {
+      if (
+        event.key === null ||
+        event.key === `qwordle:v2:${mode}` ||
+        (mode === 'daily' && ['gameState', 'gameStats'].includes(event.key))
+      )
+        setStale(true)
     }
+    window.addEventListener('storage', listener)
+    return () => window.removeEventListener('storage', listener)
+  }, [mode])
 
-    if (isGameLost) {
-      setTimeout(() => {
-        setIsStatsModalOpen(true)
-      }, GAME_LOST_INFO_DELAY)
-    }
-  }, [isGameWon, isGameLost, showSuccessAlert])
-
-  const onChar = (value: string) => {
+  async function submit(skip = false) {
     if (
-      currentGuess.length < MAX_WORD_LENGTH &&
-      guesses.length < MAX_CHALLENGES &&
-      !isGameWon
-    ) {
-      setCurrentGuess(`${currentGuess}${value}`)
-    }
-  }
-
-  const onDelete = () => {
-    setCurrentGuess(currentGuess.slice(0, -1))
-  }
-
-  const onEnter = () => {
-    if (isGameWon || isGameLost) {
+      !snapshot ||
+      busyRef.current ||
+      modalOpen ||
+      expired ||
+      stale ||
+      (finished && !bonusPending)
+    )
+      return
+    if (!skip && currentGuess.length !== 5) {
+      showError('Not enough letters')
+      setCurrentRowClass('jiggle')
+      setTimeout(() => setCurrentRowClass(''), ALERT_TIME_MS)
       return
     }
-    if (!(currentGuess.length === MAX_WORD_LENGTH)) {
-      showErrorAlert(NOT_ENOUGH_LETTERS_MESSAGE)
+    if (!skip && !isWordInWordList(currentGuess)) {
+      showError('Word not found')
       setCurrentRowClass('jiggle')
-      return setTimeout(() => {
-        setCurrentRowClass('')
-      }, ALERT_TIME_MS)
+      setTimeout(() => setCurrentRowClass(''), ALERT_TIME_MS)
+      return
     }
-
-    if (!isWordInWordList(currentGuess)) {
-      showErrorAlert(WORD_NOT_FOUND_MESSAGE)
-      setCurrentRowClass('jiggle')
-      return setTimeout(() => {
-        setCurrentRowClass('')
-      }, ALERT_TIME_MS)
-    }
-
-    // enforce hard mode - all guesses must contain all previously revealed letters
-    // if (isHardMode) {
-    //   const firstMissingReveal = findFirstUnusedReveal(currentGuess, guesses)
-    //   if (firstMissingReveal) {
-    //     showErrorAlert(firstMissingReveal)
-    //     setCurrentRowClass('jiggle')
-    //     return setTimeout(() => {
-    //       setCurrentRowClass('')
-    //     }, ALERT_TIME_MS)
-    //   }
-    // }
-
-    setIsRevealing(true)
-    // turn this back off after all
-    // chars have been revealed
-    setTimeout(() => {
-      setIsRevealing(false)
-    }, REVEAL_TIME_MS * MAX_WORD_LENGTH)
-
-    const winningWord = isWinningWord(currentGuess)
-
-    if (
-      currentGuess.length === MAX_WORD_LENGTH &&
-      guesses.length < MAX_CHALLENGES &&
-      !isGameWon
-    ) {
-      setGuesses([...guesses, currentGuess])
+    busyRef.current = true
+    setBusy(true)
+    try {
+      const action = skip
+        ? { type: 'skip-bonus' as const }
+        : bonusPending
+          ? { type: 'bonus' as const, word: currentGuess }
+          : {
+              type: 'guess' as const,
+              word: currentGuess,
+              offerBonus: bonusEnabled,
+            }
+      const next = initial.memory
+        ? { ...snapshot, progress: advance(snapshot.progress, action) }
+        : await commitAction(snapshot, action)
+      setSnapshot(next)
       setCurrentGuess('')
-
-      if (winningWord) {
-        setStats(addStatsForCompletedGame(stats, guesses.length))
-        return setIsGameWon(true)
+      setError('')
+      if (action.type !== 'skip-bonus') {
+        setIsRevealing(true)
+        setTimeout(
+          () => setIsRevealing(false),
+          REVEAL_TIME_MS * MAX_WORD_LENGTH,
+        )
       }
-
-      if (guesses.length === MAX_CHALLENGES - 1) {
-        setStats(addStatsForCompletedGame(stats, guesses.length + 1))
-        setIsGameLost(true)
-        showErrorAlert(CORRECT_WORD_MESSAGE(solution_A, solution_B), {
-          persist: true,
-          delayMs: REVEAL_TIME_MS * MAX_WORD_LENGTH + 1,
-        })
-      }
+    } catch (failure) {
+      setError(errorText(failure))
+    } finally {
+      busyRef.current = false
+      setBusy(false)
     }
   }
 
+  async function nextPractice() {
+    if (!snapshot || busyRef.current) return
+    busyRef.current = true
+    setBusy(true)
+    try {
+      const next = initial.memory
+        ? initialGameInMemory(snapshot)
+        : await startPractice(snapshot)
+      setSnapshot(next)
+      setCurrentGuess('')
+      setError('')
+      setStale(false)
+    } catch (failure) {
+      setError(errorText(failure))
+    } finally {
+      busyRef.current = false
+      setBusy(false)
+    }
+  }
+
+  const disabled =
+    busy || modalOpen || expired || stale || (finished && !bonusPending)
+  const remaining =
+    won && progress
+      ? progress.guesses.includes(puzzle!.solution_A)
+        ? puzzle!.solution_B
+        : puzzle!.solution_A
+      : ''
+
   return (
-    <div className="pt-2 pb-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <>
       <div className="flex w-80 mx-auto items-center mb-8 mt-20">
         <h1 className="text-xl ml-2.5 grow font-bold dark:text-white">
           {GAME_TITLE}
         </h1>
-        <InformationCircleIcon
-          className="h-6 w-6 mr-2 cursor-pointer dark:stroke-white"
-          onClick={() => setIsInfoModalOpen(true)}
-        />
-        <ChartBarIcon
-          className="h-6 w-6 mr-3 cursor-pointer dark:stroke-white"
-          onClick={() => setIsStatsModalOpen(true)}
-        />
-        <CogIcon
-          className="h-6 w-6 mr-3 cursor-pointer dark:stroke-white"
-          onClick={() => setIsSettingsModalOpen(true)}
-        />
+        <button
+          type="button"
+          aria-label="How to play"
+          className="cursor-pointer"
+          onClick={() => setInfoOpen(true)}
+        >
+          <InformationCircleIcon className="h-6 w-6 mr-2 dark:stroke-white" />
+        </button>
+        {mode !== 'practice' && (
+          <button
+            type="button"
+            aria-label="Statistics"
+            className="cursor-pointer"
+            onClick={() => setStatsOpen(true)}
+          >
+            <ChartBarIcon className="h-6 w-6 mr-3 dark:stroke-white" />
+          </button>
+        )}
+        <button
+          type="button"
+          aria-label="Settings"
+          className="cursor-pointer"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <CogIcon className="h-6 w-6 mr-3 dark:stroke-white" />
+        </button>
       </div>
-      <Grid
-        guesses={guesses}
-        currentGuess={currentGuess}
-        isRevealing={isRevealing}
-        currentRowClassName={currentRowClass}
-      />
-      <Keyboard
-        onChar={onChar}
-        onDelete={onDelete}
-        onEnter={onEnter}
-        guesses={guesses}
-        isRevealing={isRevealing}
-      />
-      <InfoModal
-        isOpen={isInfoModalOpen}
-        handleClose={() => setIsInfoModalOpen(false)}
-      />
-      <StatsModal
-        isOpen={isStatsModalOpen}
-        handleClose={() => setIsStatsModalOpen(false)}
-        guesses={guesses}
-        gameStats={stats}
-        isGameLost={isGameLost}
-        isGameWon={isGameWon}
-        handleShare={() => showSuccessAlert(GAME_COPIED_MESSAGE)}
-        isHardMode={isHardMode}
-      />
+      {initial.memory && (
+        <p role="status" className="text-center mb-4">
+          Practice is available without saving in this browser.
+        </p>
+      )}
+      {error && (
+        <div
+          role="alert"
+          className="max-w-md mx-auto border border-red-400 rounded p-3 mb-4"
+        >
+          {error}
+        </div>
+      )}
+      {(expired || stale) && (
+        <p role="status" className="text-center mb-4">
+          {expired
+            ? 'A new daily puzzle is available.'
+            : 'Your saved game changed in another tab.'}{' '}
+          <button className={button} onClick={() => window.location.reload()}>
+            Reload game
+          </button>
+        </p>
+      )}
+      {progress && puzzle && (
+        <>
+          <Grid
+            pair={puzzle}
+            guesses={progress.guesses}
+            currentGuess={finished ? '' : currentGuess}
+            isRevealing={isRevealing}
+            currentRowClassName={currentRowClass}
+          />
+          {finished && (
+            <div className="text-center max-w-md mx-auto mb-4" role="status">
+              <p className="font-semibold">
+                {won
+                  ? `Solved in ${progress.guesses.length}/6!`
+                  : 'This puzzle is complete.'}
+              </p>
+              {bonusPending ? (
+                <p>
+                  Your win is saved. One bonus guess for the other word; your
+                  streak is safe.
+                </p>
+              ) : (
+                <p>
+                  The words were {puzzle.solution_A} and {puzzle.solution_B}.
+                </p>
+              )}
+              {progress.bonus.guess && (
+                <p>
+                  {progress.bonus.guess === remaining
+                    ? 'Both words found!'
+                    : 'Bonus turn complete. Your original win still counts.'}
+                </p>
+              )}
+            </div>
+          )}
+          {bonusPending && (
+            <section aria-label="Bonus turn" className="mb-4">
+              <h2 className="text-center font-semibold mb-2">Bonus turn</h2>
+              <CurrentRow guess={currentGuess} className="" />
+              <div className="text-center mt-2">
+                <button
+                  disabled={disabled}
+                  className={button}
+                  onClick={() => void submit(true)}
+                >
+                  Skip bonus and reveal
+                </button>
+              </div>
+            </section>
+          )}
+          {progress.bonus.guess && (
+            <section aria-label="Bonus result" className="mb-4">
+              <CompletedRow
+                guess={progress.bonus.guess}
+                pair={{ solution_A: remaining, solution_B: '' }}
+              />
+            </section>
+          )}
+          <Keyboard
+            pair={
+              bonusPending ? { solution_A: remaining, solution_B: '' } : puzzle
+            }
+            guesses={bonusPending ? [] : progress.guesses}
+            isRevealing={isRevealing}
+            disabled={disabled}
+            onChar={(value) => {
+              if (!disabled && /^[A-Z]$/.test(value))
+                setCurrentGuess((guess) =>
+                  guess.length < 5 ? guess + value : guess,
+                )
+            }}
+            onDelete={() => {
+              if (!disabled) setCurrentGuess((guess) => guess.slice(0, -1))
+            }}
+            onEnter={() => void submit()}
+          />
+          {mode === 'practice' && (
+            <div className="text-center mt-5">
+              <button
+                disabled={busy}
+                className={button}
+                onClick={() => void nextPractice()}
+              >
+                New practice puzzle
+              </button>
+            </div>
+          )}
+          {mode !== 'practice' && (
+            <StatsModal
+              puzzle={puzzle}
+              isOpen={statsOpen}
+              handleClose={() => setStatsOpen(false)}
+              guesses={progress.guesses}
+              gameStats={progress.stats}
+              isGameLost={finished && !won}
+              isGameWon={won}
+              handleShare={() => showSuccess('Result shared')}
+              isHardMode={getPreference('gameMode') === 'hard'}
+            />
+          )}
+        </>
+      )}
+      <InfoModal isOpen={infoOpen} handleClose={() => setInfoOpen(false)} />
       <SettingsModal
-        isOpen={isSettingsModalOpen}
-        handleClose={() => setIsSettingsModalOpen(false)}
-        isHardMode={isHardMode}
-        handleHardMode={handleHardMode}
-        isDarkMode={isDarkMode}
-        handleDarkMode={handleDarkMode}
-        isHighContrastMode={isHighContrastMode}
-        handleHighContrastMode={handleHighContrastMode}
+        isOpen={settingsOpen}
+        handleClose={() => setSettingsOpen(false)}
+        isDarkMode={dark}
+        handleDarkMode={(value: boolean) => {
+          setDark(value)
+          setPreference('theme', value ? 'dark' : 'light')
+        }}
+        isHighContrastMode={contrast}
+        handleHighContrastMode={(value: boolean) => {
+          setContrast(value)
+          setStoredIsHighContrastMode(value)
+        }}
+        isBonusTurn={bonusEnabled}
+        handleBonusTurn={(value: boolean) => {
+          setBonusEnabled(value)
+          setPreference('qwordle:bonus-enabled', value ? '1' : '0')
+        }}
+        isPracticeMode={mode === 'practice'}
+        handlePracticeMode={(value: boolean) => {
+          onModeChange(value ? 'practice' : 'daily')
+          setSettingsOpen(false)
+        }}
       />
+    </>
+  )
+}
 
+function initialGameInMemory(snapshot: Snapshot): Snapshot {
+  return {
+    revision: null,
+    progress: {
+      version: 2,
+      puzzle: newPracticePuzzle(snapshot.progress.puzzle),
+      guesses: [],
+      stats: emptyStats(),
+      bonus: { offered: false, guess: null, skipped: false },
+    },
+  }
+}
+
+export default function App() {
+  const [mode, setMode] = useState<GameMode>('daily')
+  return (
+    <div className="pt-2 pb-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+      <Game key={mode} mode={mode} onModeChange={setMode} />
       <AlertContainer />
     </div>
   )
 }
-
-export default App
